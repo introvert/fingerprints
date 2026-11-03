@@ -5,8 +5,11 @@ A self-hosted tool that captures and analyses **browser fingerprints** across ev
 | Layer | What is captured |
 |---|---|
 | **TLS** (separate section `tls`) | Raw ClientHello → **JA3**, **JA3N**, **JA4**, JA4_r, JA4_o, **peetprint**, decoded cipher suites, extensions (in order), groups, key shares, signature algorithms, ALPN/ALPS, cert compression, ECH, GREASE, plus the negotiated parameters |
-| **HTTP/2** | Decrypted frames → **Akamai HTTP/2 fingerprint** (SETTINGS, WINDOW_UPDATE, PRIORITY, pseudo-header order), HEADERS priority/flags, initial frame log |
-| **HTTP** | Header **wire order and casing** (HPACK-decoded for h2, raw for HTTP/1.x), **JA4H**, client hints (`Accept-CH` is sent to request high-entropy hints) |
+| **TCP/IP** | Client SYN via raw socket: **JA4T**, p0f-style signature, TTL and hop count, OS guess, MSS → MTU/VPN guess, ECN, DF. Also the kernel's `TCP_INFO` (RTT, MSS, negotiated options) |
+| **HTTP/2** | Decrypted frames → **Akamai HTTP/2 fingerprint**, the full client frame log with timestamps, PRIORITY_UPDATE (RFC 9218), and the HPACK encoding of each header plus an HPACK fingerprint |
+| **HTTP/3 / QUIC** | QUIC Initial packets decrypted passively → **QUIC JA4** (`q13…`), transport parameters, Initial packet and frame layout (including Chrome's chaos protection), HTTP/3 SETTINGS, QUIC RTT. `Alt-Svc` is advertised automatically |
+| **Timings** | Accept → ClientHello, server handshake time, **TLS round trip**, handshake → first request, HTTP/2 preface → HEADERS, TCP/QUIC RTT, page load → submit, and a `Server-Timing` header. On the JS side: Navigation Timing, RTT pings, jitter, clock skew, and the protocol actually used |
+| **HTTP** | Header **wire order and casing** (HPACK-decoded for h2, raw for HTTP/1.x), header bytes and count, **JA4H**, client hints. Both the **page (navigation) request** and the fetch that submits the data are captured, because their headers differ |
 | **JavaScript** (~40 probes) | navigator, userAgentData high-entropy values, screen, Intl/timezone, media queries, canvas (with noise-injection check), WebGL/WebGL2 (unmasked renderer, params, extensions, precision, render hash), WebGPU adapter, audio (OfflineAudioContext), fonts, font preferences, emoji/DOMRect/SVG metrics, math, JS engine quirks, CPU architecture, WASM features, ~100 feature flags, CSS.supports bitmap, codecs/MSE/MediaRecorder/DRM, speech voices, media devices, permissions, storage/quota, battery, network, keyboard layout, WebRTC codecs and ICE (local/public IP), XR, Apple Pay, timer resolution, **Web Worker vs main thread comparison**, **automation detection** (webdriver, Selenium/Playwright/Puppeteer globals, CDP `Runtime.enable` detection, SwiftShader, …), **API tampering ("lies") detection** (non-native getters, own props on `navigator`, iframe realm mismatch) |
 | **Libraries** | [FingerprintJS](https://github.com/fingerprintjs/fingerprintjs) 5.3.0 and [ThumbmarkJS](https://github.com/thumbmarkjs/thumbmarkjs) 1.12.0 (both MIT, vendored and served locally, telemetry disabled) |
 | **Analysis** | Cross-layer consistency checks, for example a UA that claims Chrome but has a Go/Python TLS stack, HTTP/2 settings that don't match the UA, a client-hint platform that differs from the UA, a worker that differs from the main thread, or automation and tampering signals. Each report gets a 0–100 suspicion score |
@@ -46,6 +49,8 @@ Docker: `docker build -t fingerprints . && docker run -p 443:8443 -v fpdata:/dat
 | `-acme` | | domains for automatic Let's Encrypt certificates (TLS-ALPN-01, needs port 443) |
 | `-db` | `fingerprints.db` | SQLite path; `-db ""` disables storage |
 | `-public-url` | | base URL for permalinks |
+| `-syn-capture` | true | TCP SYN fingerprinting (Linux, needs root/CAP_NET_RAW; if unavailable it logs a warning and continues) |
+| `-http3` | true | serve HTTP/3 on the UDP side of `-https` and fingerprint QUIC |
 | `-trust-proxy` | false | take the client IP from `X-Forwarded-For` |
 | `-admin-token` | `$FP_ADMIN_TOKEN` | if set, it is required for listing, history and delete |
 | `-read-only` | false | disable storing |
@@ -58,7 +63,10 @@ Docker: `docker build -t fingerprints . && docker run -p 443:8443 -v fpdata:/dat
 |---|---|
 | `GET /` | Collector UI (`?mode=store`, `?label=`, `?webrtc=0`, `?libs=0`, `?auto=0`) |
 | `GET /f/{id}` | Permalink page for a stored fingerprint: history and "compare with this browser now" |
-| `GET /api/server` (`/api/tls`, `/tls`, `/json`) | Server-side fingerprint of this request (TLS, HTTP/2, headers) |
+| `GET /api/server` (`/tls`, `/json`) | Server-side fingerprint of this request (TCP, TLS, HTTP/2, HTTP/3, headers, timing) |
+| `GET /api/server/{section}`, `/api/tls`, `/api/tcp`, `/api/http2`, `/api/http3`, `/api/headers`, `/api/timing`, `/api/hashes`, `/api/analysis` | A single section of the above as JSON |
+| `GET /api/ping` | Server time, connection id, protocol and TCP/QUIC RTT, used for latency and clock-skew probes |
+| `GET /api/export?limit=` | NDJSON export of stored reports (admin) |
 | `POST /api/fingerprint?mode=echo\|store` | Submit client data (body below) and get the full report back. Stores it when `mode=store` (201 + `Location`) |
 | `GET /api/fingerprint?mode=store` | Store a server-side-only fingerprint (for curl, bots, non-JS clients) |
 | `GET /api/fingerprints/{id}` | Read a stored report |
@@ -68,7 +76,9 @@ Docker: `docker build -t fingerprints . && docker run -p 443:8443 -v fpdata:/dat
 | `DELETE /api/fingerprints/{id}` | Delete a stored report (requires `-admin-token`) |
 | `GET /api/info` | Server capabilities |
 
-All JSON endpoints accept `?format=json` (pretty, default), `?format=compact` or `?format=text`. The text format is also used when the request has `Accept: text/plain`.
+All JSON endpoints accept `?format=json` (pretty, default), `?format=compact` or `?format=text` (also chosen by `Accept: text/plain`). They also accept `?fields=` to select dotted paths, for example `?fields=tls.ja4,http2.akamai_fingerprint,tcp.syn.ja4t,summary`. Permalinks return JSON when requested with `Accept: application/json` or a `.json` suffix (`/f/{id}.json`, `/api/fingerprints/{id}.json`).
+
+For a comparison against FingerprintJS, ThumbmarkJS, CreepJS, BrowserLeaks and tls.peet.ws, see [docs/COVERAGE.md](docs/COVERAGE.md).
 
 Admin endpoints take `Authorization: Bearer <token>` or `?token=`.
 
