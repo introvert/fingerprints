@@ -1,0 +1,5 @@
+/fingerprints
+*.db
+*.db-shm
+*.db-wal
+acme-cache/

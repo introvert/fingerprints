@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Browser Fingerprints</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header>
+  <div class="wrap head">
+    <a class="brand" href="/">fingerprints</a>
+    <nav>
+      <a href="/api/server" title="Server-side only (TLS / HTTP2 / headers) — works with curl">/api/server</a>
+      <a href="https://github.com/introvert/fingerprints#api" rel="noopener">API</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="intro">
+    <h1 id="title">Your browser fingerprint</h1>
+    <p class="muted" id="subtitle">Collected from the TLS handshake, HTTP/2 frames, request headers and ~40 JavaScript probes. Nothing is stored unless you press <b>Save</b>.</p>
+    <div class="controls" id="controls">
+      <button id="btn-run" class="secondary">Run again</button>
+      <button id="btn-save">Save &amp; get permalink</button>
+      <label><input type="checkbox" id="opt-webrtc" checked> WebRTC IP probe (STUN)</label>
+      <label><input type="checkbox" id="opt-libs" checked> FingerprintJS + ThumbmarkJS</label>
+      <input type="text" id="opt-label" placeholder="label (optional)" maxlength="200">
+    </div>
+    <div id="status" class="status" role="status">Starting…</div>
+    <div id="permalink" class="permalink" hidden></div>
+  </section>
+
+  <section id="summary" hidden>
+    <h2>Summary</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="analysis" hidden>
+    <h2>Consistency &amp; bot checks <span id="score" class="pill"></span></h2>
+    <table class="checks"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody id="checks"></tbody></table>
+  </section>
+
+  <section id="compare" hidden>
+    <h2>Compared with this browser now</h2>
+    <table class="checks"><thead><tr><th>Hash</th><th>Stored</th><th>Now</th><th></th></tr></thead><tbody id="compare-body"></tbody></table>
+  </section>
+
+  <section id="related" hidden>
+    <h2>History (same fingerprint)</h2>
+    <div id="related-body"></div>
+  </section>
+
+  <section id="details" hidden>
+    <h2>Details</h2>
+    <div class="toolbar">
+      <button class="secondary small" id="btn-expand">Expand all</button>
+      <button class="secondary small" id="btn-collapse">Collapse all</button>
+      <button class="secondary small" id="btn-copy">Copy JSON</button>
+      <button class="secondary small" id="btn-download">Download JSON</button>
+    </div>
+    <div id="tree"></div>
+  </section>
+</main>
+
+<script src="/static/vendor/fingerprintjs-5.3.0.umd.min.js" defer></script>
+<script src="/static/vendor/thumbmarkjs-1.12.0.umd.js" defer></script>
+<script src="/static/collect.js" defer></script>
+<script src="/static/app.js" defer></script>
+</body>
+</html>
