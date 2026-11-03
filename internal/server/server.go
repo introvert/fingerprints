@@ -34,6 +34,9 @@ type Config struct {
 	MaxBody int64
 	// ReadOnly disables storing new fingerprints.
 	ReadOnly bool
+	// AltSvc, when set, is sent as the Alt-Svc header to advertise HTTP/3
+	// (e.g. `h3=":443"; ma=86400`).
+	AltSvc string
 }
 
 // Server is the HTTP handler.
@@ -41,6 +44,7 @@ type Server struct {
 	cfg   Config
 	store *store.Store
 	mux   *http.ServeMux
+	nav   *navCache
 }
 
 // New builds the handler. st may be nil, which disables storage.
@@ -48,7 +52,7 @@ func New(cfg Config, st *store.Store) *Server {
 	if cfg.MaxBody == 0 {
 		cfg.MaxBody = 4 << 20
 	}
-	s := &Server{cfg: cfg, store: st, mux: http.NewServeMux()}
+	s := &Server{cfg: cfg, store: st, mux: http.NewServeMux(), nav: newNavCache()}
 	static, _ := fs.Sub(web.FS, "static")
 	fileServer := http.FileServerFS(static)
 
@@ -58,9 +62,20 @@ func New(cfg Config, st *store.Store) *Server {
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "ok\n") })
 
 	// Server side (TLS / HTTP2 / headers) only. Works for curl & friends.
-	for _, p := range []string{"GET /api/server", "GET /api/tls", "GET /tls", "GET /json"} {
+	for _, p := range []string{"GET /api/server", "GET /tls", "GET /json"} {
 		s.mux.HandleFunc(p, s.handleServerOnly)
 	}
+	// Single sections of the server-side report.
+	s.mux.HandleFunc("GET /api/server/{section}", s.handleSection)
+	for path, section := range map[string]string{
+		"/api/tls": "tls", "/api/tcp": "tcp", "/api/http2": "http2", "/api/http3": "http3",
+		"/api/headers": "http", "/api/timing": "timing", "/api/hashes": "hashes", "/api/analysis": "analysis",
+	} {
+		sec := section
+		s.mux.HandleFunc("GET "+path, func(w http.ResponseWriter, r *http.Request) { s.section(w, r, sec) })
+	}
+	s.mux.HandleFunc("GET /api/ping", s.handlePing)
+	s.mux.HandleFunc("GET /api/export", s.handleExport)
 	s.mux.HandleFunc("GET /api/fingerprint", s.handleFingerprint)
 	s.mux.HandleFunc("POST /api/fingerprint", s.handleFingerprint)
 
@@ -88,6 +103,11 @@ const acceptCH = "Sec-CH-UA, Sec-CH-UA-Mobile, Sec-CH-UA-Platform, Sec-CH-UA-Pla
 	"Sec-CH-Viewport-Height, Device-Memory, DPR, Viewport-Width, Downlink, ECT, RTT, Save-Data"
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	w = &timingWriter{ResponseWriter: w, start: start}
+	if s.cfg.AltSvc != "" {
+		w.Header().Set("Alt-Svc", s.cfg.AltSvc)
+	}
 	w.Header().Set("Accept-CH", acceptCH)
 	w.Header().Set("Permissions-Policy", "ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-platform-version=*, ch-ua-wow64=*, ch-ua-form-factors=*")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -96,11 +116,25 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	// /f/{id} serves JSON to API clients.
+	if id := r.PathValue("id"); id != "" && wantsJSON(r) {
+		s.handleGet(w, r)
+		return
+	}
 	b, err := fs.ReadFile(web.FS, "static/index.html")
 	if err != nil {
 		http.Error(w, "missing index", 500)
 		return
 	}
+	// Remember the document request so the submitted report can include it.
+	nav := s.serverReport(r)
+	nonce := store.NewID() + store.NewID()
+	ni := &NavigationInfo{HTTP: nav.HTTP, ConnectionID: nav.Network.ConnectionID, Protocol: nav.Network.ApplicationProtocol, At: time.Now().UTC()}
+	if nav.TLS != nil && nav.TLS.Fingerprint != nil {
+		ni.JA4 = nav.TLS.JA4
+	}
+	s.nav.put(nonce, ni)
+	b = bytes.Replace(b, []byte("{{NONCE}}"), []byte(nonce), 1)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Critical-CH", "Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform-Version, Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Model")
@@ -111,6 +145,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 type clientPayload struct {
 	Label     string                     `json:"label"`
+	Nonce     string                     `json:"nonce"`
 	Client    *ClientData                `json:"client"`
 	Libraries map[string]json.RawMessage `json:"libraries"`
 }
@@ -151,6 +186,12 @@ func (s *Server) handleFingerprint(w http.ResponseWriter, r *http.Request) {
 		}
 		rep.Client = p.Client
 		rep.Libraries = p.Libraries
+		if ni := s.nav.get(p.Nonce); ni != nil {
+			cp := *ni
+			cp.SameConnection = ni.ConnectionID != 0 && ni.ConnectionID == rep.Network.ConnectionID
+			rep.Navigation = &cp
+			rep.Timing.NavigationToSubmitMS = float64(time.Since(ni.At).Microseconds()) / 1000
+		}
 		if p.Label != "" {
 			rep.Label = p.Label
 		}
@@ -237,7 +278,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 	if !s.requireStore(w, r) {
 		return
 	}
-	rec, err := s.store.Get(r.Context(), r.PathValue("id"))
+	rec, err := s.store.Get(r.Context(), strings.TrimSuffix(r.PathValue("id"), ".json"))
 	if errors.Is(err, store.ErrNotFound) {
 		s.writeErr(w, r, http.StatusNotFound, "fingerprint not found")
 		return
@@ -247,6 +288,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Cache-Control", "public, max-age=3600, immutable")
+	w.Header().Set("Vary", "Accept")
 	s.write(w, r, http.StatusOK, json.RawMessage(rec.Report))
 }
 
@@ -293,6 +335,9 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
 		CombinedHash: q.Get("combined_hash"), VisitorID: q.Get("visitor_id"), IP: q.Get("ip"), Label: q.Get("label"),
 	}
 	f.Limit, _ = strconv.Atoi(q.Get("limit"))
+	if f.Limit <= 0 || f.Limit > 500 {
+		f.Limit = 50
+	}
 	if b := q.Get("before"); b != "" {
 		if t, err := time.Parse(time.RFC3339Nano, b); err == nil {
 			f.Before = t

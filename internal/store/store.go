@@ -191,9 +191,10 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Summary, error) {
 	if len(where) > 0 {
 		q += " WHERE " + strings.Join(where, " AND ")
 	}
-	if f.Limit <= 0 || f.Limit > 500 {
+	if f.Limit <= 0 {
 		f.Limit = 50
 	}
+	f.Limit = min(f.Limit, 10000)
 	q += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d", f.Limit)
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {

@@ -17,7 +17,8 @@
 
   // ---------- rendering ----------
   const SUMMARY_LABELS = {
-    ja4: 'JA4 (TLS)', ja3_hash: 'JA3 hash', peetprint_hash: 'Peetprint hash', http2_akamai: 'HTTP/2 (Akamai)',
+    ja4: 'JA4 (TLS)', ja4_quic: 'JA4 (QUIC)', ja4t: 'JA4T (TCP)', tcp_os_guess: 'TCP OS guess', tcp_rtt_ms: 'TCP RTT (ms)',
+    ja4h_navigation: 'JA4H (page request)', ja3_hash: 'JA3 hash', peetprint_hash: 'Peetprint hash', http2_akamai: 'HTTP/2 (Akamai)',
     ja4h: 'JA4H (HTTP)', browser_hash: 'Browser hash (stable JS)', combined_hash: 'Combined hash',
     fingerprintjs_visitor_id: 'FingerprintJS visitorId', thumbmark: 'ThumbmarkJS', ip: 'IP address',
     user_agent: 'User-Agent', protocol: 'Protocol', tls_version: 'TLS version', suspicion_score: 'Suspicion score',
@@ -84,7 +85,8 @@
     const root = $('tree');
     root.replaceChildren();
     const sections = [
-      ['Hashes', rep.hashes], ['Network', rep.network], ['TLS', rep.tls], ['HTTP/2', rep.http2], ['HTTP request', rep.http],
+      ['Hashes', rep.hashes], ['Timing', rep.timing], ['Network', rep.network], ['TCP/IP', rep.tcp], ['TLS', rep.tls],
+      ['HTTP/2', rep.http2], ['HTTP/3 / QUIC', rep.http3], ['HTTP request', rep.http], ['Page (navigation) request', rep.navigation],
     ];
     for (const [name, v] of sections) if (v) root.append(tree(name, v, null, name === 'Hashes'));
     const comps = rep.client && rep.client.components;
@@ -131,6 +133,8 @@
     const data = await window.FPCollect.collect(opts);
     const label = $('opt-label').value.trim();
     if (label) data.label = label;
+    const nonce = document.querySelector('meta[name="fp-nonce"]');
+    if (nonce && !nonce.content.includes('{')) data.nonce = nonce.content;
     return data;
   }
 

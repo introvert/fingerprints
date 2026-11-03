@@ -14,6 +14,8 @@ import (
 	"github.com/introvert/fingerprints/internal/capture"
 	"github.com/introvert/fingerprints/internal/h2fp"
 	"github.com/introvert/fingerprints/internal/httpfp"
+	"github.com/introvert/fingerprints/internal/quicfp"
+	"github.com/introvert/fingerprints/internal/tcpfp"
 	"github.com/introvert/fingerprints/internal/tlsfp"
 )
 
@@ -33,7 +35,13 @@ type Report struct {
 	Network *NetworkInfo      `json:"network"`
 	TLS     *TLSInfo          `json:"tls"`
 	HTTP2   *h2fp.Fingerprint `json:"http2"`
+	HTTP3   *HTTP3Info        `json:"http3,omitempty"`
 	HTTP    *HTTPInfo         `json:"http"`
+	TCP     *TCPReport        `json:"tcp,omitempty"`
+	Timing  *TimingReport     `json:"timing"`
+	// Navigation is the server-side view of the request that loaded the
+	// collector page (document request headers differ from fetch()).
+	Navigation *NavigationInfo `json:"navigation,omitempty"`
 
 	// Client-side (JavaScript) data. Absent for server-only fingerprints.
 	Client    *ClientData                `json:"client,omitempty"`
@@ -87,6 +95,56 @@ type HTTPInfo struct {
 	ClientHints  map[string]string `json:"client_hints,omitempty"`
 	H2Priority   *h2fp.Priority    `json:"h2_headers_priority,omitempty"`
 	H2Flags      []string          `json:"h2_headers_flags,omitempty"`
+	HPACKCodes   string            `json:"hpack_codes,omitempty"`
+	HeaderCount  int               `json:"header_count"`
+	HeaderBytes  int               `json:"header_bytes"`
+	PseudoOrder  string            `json:"pseudo_header_order,omitempty"`
+	Casing       string            `json:"header_name_casing"`
+}
+
+// TCPReport holds TCP/IP level data.
+type TCPReport struct {
+	SYN  *tcpfp.SYN  `json:"syn,omitempty"`
+	Info *tcpfp.Info `json:"info,omitempty"`
+	Note string      `json:"note,omitempty"`
+}
+
+// HTTP3Info holds the QUIC / HTTP/3 fingerprint.
+type HTTP3Info struct {
+	QUIC     *quicfp.Fingerprint `json:"quic,omitempty"`
+	Settings *capture.H3Settings `json:"settings,omitempty"`
+	Stats    *capture.QUICStats  `json:"rtt,omitempty"`
+	Note     string              `json:"note,omitempty"`
+}
+
+// TimingReport contains connection and request timings in milliseconds.
+type TimingReport struct {
+	ServerTimeMS              float64 `json:"server_time_unix_ms"`
+	ConnectionAgeMS           float64 `json:"connection_age_ms"`
+	AcceptToFirstByteMS       float64 `json:"accept_to_first_byte_ms,omitempty"`
+	ClientHelloTransferMS     float64 `json:"client_hello_transfer_ms,omitempty"`
+	ServerHandshakeMS         float64 `json:"server_handshake_processing_ms,omitempty"`
+	TLSRoundTripMS            float64 `json:"tls_round_trip_ms,omitempty"`
+	HandshakeTotalMS          float64 `json:"handshake_total_ms,omitempty"`
+	HandshakeToFirstRequestMS float64 `json:"handshake_to_first_request_ms,omitempty"`
+	H2PrefaceToHeadersMS      float64 `json:"h2_preface_to_first_headers_ms,omitempty"`
+	RequestOnConnection       int64   `json:"request_number_on_connection,omitempty"`
+	TCPRTTMS                  float64 `json:"tcp_rtt_ms,omitempty"`
+	TCPRTTVarMS               float64 `json:"tcp_rtt_var_ms,omitempty"`
+	TCPMinRTTMS               float64 `json:"tcp_min_rtt_ms,omitempty"`
+	QUICSmoothedRTTMS         float64 `json:"quic_smoothed_rtt_ms,omitempty"`
+	QUICMinRTTMS              float64 `json:"quic_min_rtt_ms,omitempty"`
+	NavigationToSubmitMS      float64 `json:"navigation_to_submit_ms,omitempty"`
+}
+
+// NavigationInfo is captured when the collector page itself was requested.
+type NavigationInfo struct {
+	HTTP           *HTTPInfo `json:"http"`
+	ConnectionID   uint64    `json:"connection_id,omitempty"`
+	SameConnection bool      `json:"same_connection_as_submit"`
+	Protocol       string    `json:"protocol"`
+	JA4            string    `json:"ja4,omitempty"`
+	At             time.Time `json:"at"`
 }
 
 // ClientData is what the browser collector posts.
@@ -109,7 +167,7 @@ type ClientComponent struct {
 var volatileComponents = map[string]bool{
 	"battery": true, "connection": true, "window": true, "document": true, "timing": true,
 	"storage": true, "webrtc": true, "performance": true, "gamepads": true, "mediaDevices": true,
-	"permissions": true,
+	"permissions": true, "latency": true, "navigationTiming": true,
 }
 
 func clientIP(r *http.Request, trustProxy bool) (ip, port string, fwd []string) {
@@ -140,6 +198,7 @@ var clientHintHeaders = []string{
 
 func (s *Server) serverReport(r *http.Request) *Report {
 	rep := &Report{CreatedAt: time.Now().UTC(), Hashes: map[string]string{}, Summary: map[string]any{}}
+	rep.Timing = &TimingReport{ServerTimeMS: float64(time.Now().UnixMicro()) / 1000}
 	ci := capture.FromContext(r.Context())
 
 	ip, port, fwd := clientIP(r, s.cfg.TrustProxy)
@@ -180,13 +239,23 @@ func (s *Server) serverReport(r *http.Request) *Report {
 			rep.HTTP2 = ci.H2.Fingerprint()
 			if hb := ci.H2.RequestHeaders(r.Method, r.RequestURI); hb != nil {
 				for _, h := range hb.Headers {
-					headers = append(headers, httpfp.Header{Name: h.Name, Value: h.Value})
+					hh := httpfp.Header{Name: h.Name, Value: h.Value}
+					if h.HPACK != nil {
+						hh.Encoding = h.HPACK
+					}
+					headers = append(headers, hh)
 				}
 				rep.HTTP.HeaderSource = "hpack (wire order)"
 				rep.HTTP.H2Priority = hb.Priority
 				rep.HTTP.H2Flags = hb.Flags
+				rep.HTTP.HPACKCodes = hb.HPACKCodes
 			}
 		}
+		if h3, ok := ci.Extra.(*capture.H3Info); ok {
+			rep.HTTP3 = &HTTP3Info{QUIC: h3.QUIC, Settings: h3.Settings(), Stats: h3.Stats(),
+				Note: "HTTP/3 header order is not available (QPACK is decoded inside quic-go)"}
+		}
+		s.fillTransport(rep, ci)
 		if ci.H1 != nil {
 			if req := ci.H1.Request(r.Method, r.RequestURI); req != nil {
 				headers = req.Headers
@@ -211,8 +280,28 @@ func (s *Server) serverReport(r *http.Request) *Report {
 		}
 	}
 	rep.HTTP.Headers = headers
+	var pseudo []string
+	lower, upper := 0, 0
 	for _, h := range headers {
 		rep.HTTP.HeaderOrder = append(rep.HTTP.HeaderOrder, h.Name)
+		rep.HTTP.HeaderBytes += len(h.Name) + len(h.Value) + 4
+		if strings.HasPrefix(h.Name, ":") {
+			pseudo = append(pseudo, h.Name)
+		} else if h.Name == strings.ToLower(h.Name) {
+			lower++
+		} else {
+			upper++
+		}
+	}
+	rep.HTTP.HeaderCount = len(headers)
+	rep.HTTP.PseudoOrder = strings.Join(pseudo, ",")
+	switch {
+	case upper == 0:
+		rep.HTTP.Casing = "lowercase"
+	case lower == 0:
+		rep.HTTP.Casing = "Canonical-Case"
+	default:
+		rep.HTTP.Casing = "mixed"
 	}
 	rep.HTTP.JA4H, rep.HTTP.JA4HRaw = httpfp.JA4H(r.Method, ver, headers)
 	for _, h := range clientHintHeaders {
@@ -238,6 +327,22 @@ func (rep *Report) finalize() {
 	}
 	if rep.HTTP2 != nil {
 		h["http2_akamai"] = rep.HTTP2.AkamaiHash
+		if rep.HTTP2.HPACKCodes != "" {
+			h["hpack"] = sha(rep.HTTP2.HPACKCodes)[:16]
+		}
+	}
+	if rep.TCP != nil && rep.TCP.SYN != nil {
+		h["ja4t"] = rep.TCP.SYN.JA4T
+		h["p0f"] = sha(rep.TCP.SYN.P0fLike)[:16]
+	}
+	if rep.HTTP3 != nil && rep.HTTP3.QUIC != nil {
+		if rep.HTTP3.QUIC.TLS != nil {
+			h["ja4_quic"] = rep.HTTP3.QUIC.TLS.JA4
+		}
+		h["quic"] = sha(rep.HTTP3.QUIC.QUICFingerprint)[:16]
+	}
+	if rep.Navigation != nil && rep.Navigation.HTTP != nil {
+		h["ja4h_navigation"] = rep.Navigation.HTTP.JA4H
 	}
 	if rep.HTTP != nil {
 		h["ja4h"] = rep.HTTP.JA4H
@@ -288,6 +393,19 @@ func (rep *Report) finalize() {
 		sm["http2_akamai"] = rep.HTTP2.Akamai
 	}
 	sm["ja4h"] = rep.HTTP.JA4H
+	if rep.TCP != nil && rep.TCP.SYN != nil {
+		sm["ja4t"] = rep.TCP.SYN.JA4T
+		sm["tcp_os_guess"] = rep.TCP.SYN.OSGuess
+	}
+	if rep.Timing != nil && rep.Timing.TCPRTTMS > 0 {
+		sm["tcp_rtt_ms"] = rep.Timing.TCPRTTMS
+	}
+	if rep.HTTP3 != nil && rep.HTTP3.QUIC != nil && rep.HTTP3.QUIC.TLS != nil {
+		sm["ja4_quic"] = rep.HTTP3.QUIC.TLS.JA4
+	}
+	if rep.Navigation != nil && rep.Navigation.HTTP != nil {
+		sm["ja4h_navigation"] = rep.Navigation.HTTP.JA4H
+	}
 	if _, ok := h["browser"]; ok {
 		sm["browser_hash"] = h["browser"]
 	}
@@ -342,4 +460,46 @@ func canonical(raw json.RawMessage) []byte {
 func sha(s string) string {
 	sum := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(sum[:])
+}
+
+func msBetween(a, b time.Time) float64 {
+	if a.IsZero() || b.IsZero() || b.Before(a) {
+		return 0
+	}
+	return float64(b.Sub(a).Microseconds()) / 1000
+}
+
+// fillTransport adds TCP and timing sections from the connection info.
+func (s *Server) fillTransport(rep *Report, ci *capture.ConnInfo) {
+	t := ci.Snapshot()
+	now := time.Now()
+	tm := rep.Timing
+	tm.ConnectionAgeMS = msBetween(ci.AcceptedAt, now)
+	tm.RequestOnConnection = rep.Network.RequestOnConn
+	tm.AcceptToFirstByteMS = msBetween(t.Accepted, t.FirstByte)
+	tm.ClientHelloTransferMS = msBetween(t.FirstByte, t.ClientHelloDone)
+	tm.ServerHandshakeMS = msBetween(t.ClientHelloDone, t.ServerFlight)
+	tm.TLSRoundTripMS = msBetween(t.ServerFlight, t.ClientFinished)
+	tm.HandshakeTotalMS = msBetween(t.Accepted, t.HandshakeDone)
+	tm.HandshakeToFirstRequestMS = msBetween(t.HandshakeDone, t.FirstRequestByte)
+	if rep.HTTP2 != nil {
+		tm.H2PrefaceToHeadersMS = rep.HTTP2.PrefaceToFirstHeadersMS
+	}
+	if ci.Protocol == "h3" {
+		if rep.HTTP3 != nil && rep.HTTP3.Stats != nil {
+			tm.QUICSmoothedRTTMS = rep.HTTP3.Stats.SmoothedRTTMS
+			tm.QUICMinRTTMS = rep.HTTP3.Stats.MinRTTMS
+		}
+		return
+	}
+	tcp := &TCPReport{SYN: ci.SYN, Info: ci.TCPInfo()}
+	if tcp.SYN == nil {
+		tcp.Note = "SYN fingerprint unavailable (enable with -syn-capture; Linux, needs CAP_NET_RAW)"
+	}
+	if tcp.Info != nil {
+		tm.TCPRTTMS, tm.TCPRTTVarMS, tm.TCPMinRTTMS = tcp.Info.RTTMs, tcp.Info.RTTVarMs, tcp.Info.MinRTTMs
+	}
+	if tcp.SYN != nil || tcp.Info != nil {
+		rep.TCP = tcp
+	}
 }

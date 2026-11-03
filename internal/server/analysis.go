@@ -64,7 +64,7 @@ func tlsFamily(f *tlsfp.Fingerprint) string {
 	c := f.ClientHello
 	has := func(id uint16) bool { return slices.Contains(c.ExtensionOrder, id) }
 	switch {
-	case c.GREASE && (has(17513) || has(17613)):
+	case has(17513) || has(17613): // ALPS is Chromium/BoringSSL only (QUIC ClientHellos carry no GREASE)
 		return "chromium"
 	case !c.GREASE && has(28) && has(34):
 		return "firefox"
@@ -146,13 +146,44 @@ func analyze(rep *Report) *Analysis {
 			st = "fail"
 		}
 		add("http2_matches_user_agent", st, fmt.Sprintf("UA looks like %s, HTTP/2 settings look like %s", a.UAFamily, a.HTTP2Family), 25)
-	} else if a.UAFamily == "chromium" || a.UAFamily == "firefox" || a.UAFamily == "safari" {
+	} else if (a.UAFamily == "chromium" || a.UAFamily == "firefox" || a.UAFamily == "safari") && rep.Network.ApplicationProtocol != "h3" {
 		if rep.TLS != nil && rep.TLS.Negotiated != nil {
 			add("http2_used", "warn", "browser UA but connection did not negotiate HTTP/2", 10)
 		}
 	}
 	if strings.Contains(rep.HTTP.UserAgent, "Headless") {
 		add("headless_user_agent", "fail", "user agent advertises a headless browser", 40)
+	}
+
+	// --- TCP/IP layer ---
+	if rep.TCP != nil && rep.TCP.SYN != nil {
+		syn := rep.TCP.SYN
+		uaOS := uaPlatform(rep.HTTP.UserAgent)
+		want := 64
+		if uaOS == "Windows" {
+			want = 128
+		}
+		if uaOS != "" && syn.InitialTTL != 0 && syn.InitialTTL != want {
+			add("tcp_os_matches_user_agent", "fail", fmt.Sprintf("UA says %s but SYN initial TTL %d / options suggest %s", uaOS, syn.InitialTTL, syn.OSGuess), 25)
+		} else if uaOS != "" {
+			add("tcp_os_matches_user_agent", "pass", fmt.Sprintf("SYN looks like %s (TTL %d, %d hops)", syn.OSGuess, syn.InitialTTL, syn.Hops), 25)
+		}
+		if syn.MSS > 0 && syn.MTUGuess < 1500 && syn.MTUGuess > 0 {
+			add("network_link", "warn", fmt.Sprintf("MSS %d → MTU %d: %s", syn.MSS, syn.MTUGuess, syn.LinkGuess), 10)
+		}
+	}
+	if rep.Navigation != nil && rep.Navigation.HTTP != nil && (a.UAFamily == "chromium" || a.UAFamily == "firefox" || a.UAFamily == "safari") && rep.TLS != nil && rep.TLS.Negotiated != nil {
+		has := false
+		for _, h := range rep.Navigation.HTTP.Headers {
+			if strings.EqualFold(h.Name, "sec-fetch-dest") {
+				has = true
+			}
+		}
+		if has {
+			add("navigation_fetch_metadata", "pass", "", 15)
+		} else {
+			add("navigation_fetch_metadata", "warn", "browser UA but the page request had no Sec-Fetch-* headers", 15)
+		}
 	}
 
 	if rep.Client == nil {
@@ -264,6 +295,54 @@ func analyze(rep *Report) *Analysis {
 			add("canvas_randomization", "pass", "", 20)
 		}
 	}
+	// --- latency: JS-measured RTT vs kernel RTT of this TCP connection ---
+	var lat struct {
+		MedianRTT   float64 `json:"medianRttMs"`
+		ClockSkewMS float64 `json:"clockSkewMs"`
+	}
+	if rep.component("latency", &lat) {
+		tcpRTT := 0.0
+		if rep.Timing != nil {
+			tcpRTT = rep.Timing.TCPRTTMS
+			if tcpRTT == 0 {
+				tcpRTT = rep.Timing.QUICMinRTTMS
+			}
+		}
+		if lat.MedianRTT > 0 && tcpRTT > 0 {
+			st := "pass"
+			if lat.MedianRTT-tcpRTT > 50 && lat.MedianRTT > 3*tcpRTT {
+				st = "warn"
+			}
+			add("rtt_consistency", st, fmt.Sprintf("JS round-trip %.1f ms vs transport RTT %.1f ms (a large gap suggests a proxy/relay)", lat.MedianRTT, tcpRTT), 20)
+		}
+		if abs(lat.ClockSkewMS) > 5*60*1000 {
+			add("clock_skew", "warn", fmt.Sprintf("client clock differs from server by %.0f s", lat.ClockSkewMS/1000), 10)
+		}
+	}
+	// --- other worker scopes ---
+	for _, scope := range []string{"sharedWorker", "serviceWorker"} {
+		var sw map[string]any
+		var main map[string]any
+		if rep.component(scope, &sw) && rep.component("navigator", &main) && sw["userAgent"] != nil {
+			var diffs []string
+			for _, k := range []string{"userAgent", "platform", "hardwareConcurrency", "language"} {
+				if v, ok := sw[k]; ok && fmt.Sprint(v) != fmt.Sprint(main[k]) {
+					diffs = append(diffs, fmt.Sprintf("%s: main=%v %s=%v", k, main[k], scope, v))
+				}
+			}
+			st := "pass"
+			if len(diffs) > 0 {
+				st = "fail"
+			}
+			add(scope+"_matches_main_thread", st, strings.Join(diffs, "; "), 30)
+		}
+	}
+	var res struct {
+		Detected []string `json:"detected"`
+	}
+	if rep.component("resistance", &res) && len(res.Detected) > 0 {
+		add("privacy_resistance", "info", strings.Join(res.Detected, ", "), 0)
+	}
 	var tz struct {
 		Timezone string `json:"timezone"`
 	}
@@ -310,4 +389,11 @@ func uaPlatform(ua string) string {
 		return "Linux"
 	}
 	return ""
+}
+
+func abs(f float64) float64 {
+	if f < 0 {
+		return -f
+	}
+	return f
 }

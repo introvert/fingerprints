@@ -23,6 +23,8 @@ type Extension struct {
 	Length int    `json:"length"`
 	// Data holds decoded contents for well known extensions.
 	Data any `json:"data,omitempty"`
+	// Hex is the raw extension payload (truncated to 1 KiB).
+	Hex string `json:"hex,omitempty"`
 }
 
 // ClientHello is the decoded ClientHello.
@@ -35,24 +37,37 @@ type ClientHello struct {
 	CompressionMethods []uint8     `json:"-"`
 	Extensions         []Extension `json:"-"`
 
-	ServerName          string   `json:"-"`
-	SupportedGroups     []uint16 `json:"-"`
-	ECPointFormats      []uint8  `json:"-"`
-	SignatureAlgorithms []uint16 `json:"-"`
-	SigAlgsCert         []uint16 `json:"-"`
-	ALPN                []string `json:"-"`
-	SupportedVersions   []uint16 `json:"-"`
-	KeyShareGroups      []uint16 `json:"-"`
-	PSKModes            []uint8  `json:"-"`
-	CertCompression     []uint16 `json:"-"`
-	ALPS                []string `json:"-"`
-	RecordSizeLimit     int      `json:"-"`
-	DelegatedCredSigs   []uint16 `json:"-"`
-	HasECH              bool     `json:"-"`
-	HasPSK              bool     `json:"-"`
-	HasEarlyData        bool     `json:"-"`
-	PaddingLen          int      `json:"-"`
-	RawLength           int      `json:"-"`
+	ServerName          string         `json:"-"`
+	SupportedGroups     []uint16       `json:"-"`
+	ECPointFormats      []uint8        `json:"-"`
+	SignatureAlgorithms []uint16       `json:"-"`
+	SigAlgsCert         []uint16       `json:"-"`
+	ALPN                []string       `json:"-"`
+	SupportedVersions   []uint16       `json:"-"`
+	KeyShareGroups      []uint16       `json:"-"`
+	PSKModes            []uint8        `json:"-"`
+	CertCompression     []uint16       `json:"-"`
+	ALPS                []string       `json:"-"`
+	RecordSizeLimit     int            `json:"-"`
+	DelegatedCredSigs   []uint16       `json:"-"`
+	HasECH              bool           `json:"-"`
+	HasPSK              bool           `json:"-"`
+	HasEarlyData        bool           `json:"-"`
+	PaddingLen          int            `json:"-"`
+	RawLength           int            `json:"-"`
+	Raw                 []byte         `json:"-"`
+	SessionTicketLen    int            `json:"-"`
+	PSKIdentities       int            `json:"-"`
+	ECH                 map[string]any `json:"-"`
+	QUICParams          []QUICParam    `json:"-"`
+}
+
+// QUICParam is one QUIC transport parameter (extension 57).
+type QUICParam struct {
+	ID     uint64 `json:"id"`
+	Name   string `json:"name"`
+	Value  any    `json:"value,omitempty"`
+	GREASE bool   `json:"grease,omitempty"`
 }
 
 // Parse decodes a ClientHello from the raw bytes a client sent at the start of
@@ -87,10 +102,28 @@ func Parse(raw []byte) (*ClientHello, error) {
 			}
 		}
 	}
+	ch, err := ParseHandshake(hs)
+	if ch != nil {
+		ch.RecordVersion = recVersion
+	}
+	return ch, err
+}
+
+// ParseHandshake decodes a ClientHello handshake message (without the TLS
+// record layer), e.g. reassembled from QUIC CRYPTO frames.
+func ParseHandshake(hs []byte) (*ClientHello, error) {
+	if len(hs) < 4 {
+		return nil, ErrIncomplete
+	}
 	if hs[0] != 0x01 {
 		return nil, fmt.Errorf("tlsfp: not a ClientHello (handshake type %d)", hs[0])
 	}
-	ch := &ClientHello{RecordVersion: recVersion, RawLength: len(hs)}
+	need := int(hs[1])<<16 | int(hs[2])<<8 | int(hs[3])
+	if len(hs) < 4+need {
+		return nil, ErrIncomplete
+	}
+	hs = hs[:4+need]
+	ch := &ClientHello{RawLength: len(hs), Raw: append([]byte(nil), hs...)}
 	r := reader(hs[4:])
 	var ok bool
 	if ch.Version, ok = r.u16(); !ok {
@@ -128,6 +161,9 @@ func Parse(raw []byte) (*ClientHello, error) {
 		}
 		ext := Extension{ID: id, Name: ExtensionName(id), Length: len(data)}
 		ext.Data = ch.decodeExtension(id, data)
+		if len(data) > 0 {
+			ext.Hex = hex.EncodeToString(data[:min(len(data), 1024)])
+		}
 		ch.Extensions = append(ch.Extensions, ext)
 	}
 	return ch, nil
@@ -222,8 +258,47 @@ func (ch *ClientHello) decodeExtension(id uint16, data []byte) any {
 		return named(ch.DelegatedCredSigs, SigAlgName)
 	case 65037:
 		ch.HasECH = true
+		if t, ok := r.u8(); ok {
+			m := map[string]any{"type": map[uint8]string{0: "outer", 1: "inner"}[t]}
+			if t == 0 {
+				kdf, _ := r.u16()
+				aead, _ := r.u16()
+				cfg, _ := r.u8()
+				enc, _ := r.vec16()
+				payload, _ := r.vec16()
+				m["kdf_id"], m["aead_id"], m["config_id"] = kdf, aead, cfg
+				m["enc_length"], m["payload_length"] = len(enc), len(payload)
+			}
+			ch.ECH = m
+			return m
+		}
 	case 41:
 		ch.HasPSK = true
+		if ids, ok := r.vec16(); ok {
+			ir := reader(ids)
+			for len(ir) > 0 {
+				if _, ok := ir.vec16(); !ok {
+					break
+				}
+				ir.bytes(4)
+				ch.PSKIdentities++
+			}
+		}
+		return map[string]any{"identities": ch.PSKIdentities}
+	case 35:
+		ch.SessionTicketLen = len(data)
+		return map[string]any{"ticket_length": len(data)}
+	case 5:
+		if t, ok := r.u8(); ok {
+			return map[string]any{"status_type": t}
+		}
+	case 1:
+		if len(data) == 1 {
+			return map[string]any{"max_fragment_length": map[byte]int{1: 512, 2: 1024, 3: 2048, 4: 4096}[data[0]]}
+		}
+	case 57:
+		ch.QUICParams = parseQUICParams(data)
+		return ch.QUICParams
 	case 42:
 		ch.HasEarlyData = true
 	case 21:
@@ -245,30 +320,40 @@ type Fingerprint struct {
 	Peetprint   string `json:"peetprint"`
 	PeetHash    string `json:"peetprint_hash"`
 	ClientHello struct {
-		RecordVersion       string       `json:"record_version"`
-		LegacyVersion       string       `json:"legacy_version"`
-		SupportedVersions   []string     `json:"supported_versions,omitempty"`
-		ServerName          string       `json:"server_name,omitempty"`
-		ALPN                []string     `json:"alpn,omitempty"`
-		ALPS                []string     `json:"alps,omitempty"`
-		SessionIDLength     int          `json:"session_id_length"`
-		CipherSuites        []NamedValue `json:"cipher_suites"`
-		CompressionMethods  []uint8      `json:"compression_methods"`
-		Extensions          []Extension  `json:"extensions"`
-		SupportedGroups     []NamedValue `json:"supported_groups,omitempty"`
-		KeyShareGroups      []NamedValue `json:"key_share_groups,omitempty"`
-		SignatureAlgorithms []NamedValue `json:"signature_algorithms,omitempty"`
-		ECPointFormats      []uint8      `json:"ec_point_formats,omitempty"`
-		CertCompression     []NamedValue `json:"cert_compression,omitempty"`
-		PSKModes            []uint8      `json:"psk_key_exchange_modes,omitempty"`
-		RecordSizeLimit     int          `json:"record_size_limit,omitempty"`
-		GREASE              bool         `json:"uses_grease"`
-		ECH                 bool         `json:"encrypted_client_hello"`
-		PSK                 bool         `json:"pre_shared_key"`
-		EarlyData           bool         `json:"early_data"`
-		PaddingLength       int          `json:"padding_length,omitempty"`
-		HandshakeLength     int          `json:"handshake_length"`
-		ExtensionOrder      []uint16     `json:"extension_order"`
+		RecordVersion       string         `json:"record_version"`
+		LegacyVersion       string         `json:"legacy_version"`
+		SupportedVersions   []string       `json:"supported_versions,omitempty"`
+		ServerName          string         `json:"server_name,omitempty"`
+		ALPN                []string       `json:"alpn,omitempty"`
+		ALPS                []string       `json:"alps,omitempty"`
+		SessionIDLength     int            `json:"session_id_length"`
+		CipherSuites        []NamedValue   `json:"cipher_suites"`
+		CompressionMethods  []uint8        `json:"compression_methods"`
+		Extensions          []Extension    `json:"extensions"`
+		SupportedGroups     []NamedValue   `json:"supported_groups,omitempty"`
+		KeyShareGroups      []NamedValue   `json:"key_share_groups,omitempty"`
+		SignatureAlgorithms []NamedValue   `json:"signature_algorithms,omitempty"`
+		ECPointFormats      []uint8        `json:"ec_point_formats,omitempty"`
+		CertCompression     []NamedValue   `json:"cert_compression,omitempty"`
+		PSKModes            []uint8        `json:"psk_key_exchange_modes,omitempty"`
+		RecordSizeLimit     int            `json:"record_size_limit,omitempty"`
+		GREASE              bool           `json:"uses_grease"`
+		ECH                 bool           `json:"encrypted_client_hello"`
+		PSK                 bool           `json:"pre_shared_key"`
+		EarlyData           bool           `json:"early_data"`
+		PaddingLength       int            `json:"padding_length,omitempty"`
+		HandshakeLength     int            `json:"handshake_length"`
+		ExtensionOrder      []uint16       `json:"extension_order"`
+		ExtensionNames      []string       `json:"extension_order_names"`
+		ClientRandom        string         `json:"client_random"`
+		SessionID           string         `json:"session_id,omitempty"`
+		SessionTicketLength int            `json:"session_ticket_length,omitempty"`
+		PSKIdentities       int            `json:"psk_identities,omitempty"`
+		ECHDetails          map[string]any `json:"ech,omitempty"`
+		DelegatedCredSigs   []NamedValue   `json:"delegated_credential_sigalgs,omitempty"`
+		SigAlgsCert         []NamedValue   `json:"signature_algorithms_cert,omitempty"`
+		QUICTransportParams []QUICParam    `json:"quic_transport_parameters,omitempty"`
+		RawHex              string         `json:"raw_hex"`
 	} `json:"client_hello"`
 }
 
@@ -325,7 +410,21 @@ func (ch *ClientHello) Fingerprint(quic bool) *Fingerprint {
 	c.EarlyData = ch.HasEarlyData
 	c.PaddingLength = ch.PaddingLen
 	c.HandshakeLength = ch.RawLength
+	c.ClientRandom = hex.EncodeToString(ch.Random)
+	c.SessionID = hex.EncodeToString(ch.SessionID)
+	c.SessionTicketLength = ch.SessionTicketLen
+	c.PSKIdentities = ch.PSKIdentities
+	c.ECHDetails = ch.ECH
+	if len(ch.DelegatedCredSigs) > 0 {
+		c.DelegatedCredSigs = named(ch.DelegatedCredSigs, SigAlgName)
+	}
+	if len(ch.SigAlgsCert) > 0 {
+		c.SigAlgsCert = named(ch.SigAlgsCert, SigAlgName)
+	}
+	c.QUICTransportParams = ch.QUICParams
+	c.RawHex = hex.EncodeToString(ch.Raw)
 	for _, e := range ch.Extensions {
+		c.ExtensionNames = append(c.ExtensionNames, e.Name)
 		c.ExtensionOrder = append(c.ExtensionOrder, e.ID)
 		if IsGREASE(e.ID) {
 			c.GREASE = true

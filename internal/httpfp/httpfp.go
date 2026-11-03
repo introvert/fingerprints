@@ -17,6 +17,8 @@ import (
 type Header struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+	// Encoding optionally describes the wire encoding (HPACK representation for HTTP/2).
+	Encoding any `json:"hpack,omitempty"`
 }
 
 // Request is one raw HTTP/1.x request head.
@@ -27,6 +29,7 @@ type Request struct {
 	Version     string   `json:"version"`
 	Headers     []Header `json:"headers"`
 	LineEnding  string   `json:"line_ending"`
+	HeadBytes   int      `json:"head_bytes"`
 	used        bool
 }
 
@@ -92,7 +95,7 @@ func parseHead(b []byte) *Request {
 	if len(parts) != 3 {
 		return nil
 	}
-	r := &Request{RequestLine: lines[0], Method: parts[0], Target: parts[1], Version: parts[2], LineEnding: fmt.Sprintf("%q", le)}
+	r := &Request{RequestLine: lines[0], Method: parts[0], Target: parts[1], Version: parts[2], LineEnding: fmt.Sprintf("%q", le), HeadBytes: len(b)}
 	for _, l := range lines[1:] {
 		i := strings.IndexByte(l, ':')
 		if i <= 0 {

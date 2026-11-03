@@ -1,6 +1,7 @@
 // Package capture terminates TLS itself so that the raw ClientHello and the
 // decrypted HTTP/1.x / HTTP/2 byte streams can be observed, then hands the
-// connection to the standard Go HTTP servers.
+// connection to the standard Go HTTP servers. It also records TCP level data
+// (SYN fingerprint, TCP_INFO) and connection timings.
 package capture
 
 import (
@@ -19,8 +20,20 @@ import (
 
 	"github.com/introvert/fingerprints/internal/h2fp"
 	"github.com/introvert/fingerprints/internal/httpfp"
+	"github.com/introvert/fingerprints/internal/tcpfp"
 	"github.com/introvert/fingerprints/internal/tlsfp"
 )
+
+// Timings are absolute timestamps of connection milestones (zero if unknown).
+type Timings struct {
+	Accepted         time.Time
+	FirstByte        time.Time // first byte from client (ClientHello start)
+	ClientHelloDone  time.Time // full ClientHello received
+	ServerFlight     time.Time // first server write (ServerHello ...)
+	ClientFinished   time.Time // first client bytes after the server flight
+	HandshakeDone    time.Time
+	FirstRequestByte time.Time // first application data byte
+}
 
 // ConnInfo describes one client connection.
 type ConnInfo struct {
@@ -32,15 +45,35 @@ type ConnInfo struct {
 	TLS           *tlsfp.Fingerprint
 	TLSError      string
 	TLSState      *tls.ConnectionState
-	Protocol      string // "h2", "http/1.1", "http/1.1 (cleartext)"
+	Protocol      string // "h2", "http/1.1", "http/1.1 (cleartext)", "h3"
 	H2            *h2fp.Tracker
 	H1            *httpfp.Tracker
-	requests      atomic.Int64
+	SYN           *tcpfp.SYN
+	Timings       Timings
+	// Extra holds transport specific data (e.g. the QUIC fingerprint).
+	Extra    any
+	raw      net.Conn
+	mu       sync.Mutex
+	requests atomic.Int64
 }
 
-// RequestIndex returns the 1-based number of requests served on this connection
-// so far (including the current one).
+// NextRequest returns the 1-based number of the current request on the connection.
 func (c *ConnInfo) NextRequest() int64 { return c.requests.Add(1) }
+
+// TCPInfo returns a fresh TCP_INFO snapshot (Linux only, nil otherwise).
+func (c *ConnInfo) TCPInfo() *tcpfp.Info {
+	if c.raw == nil {
+		return nil
+	}
+	return tcpfp.GetInfo(c.raw)
+}
+
+// Snapshot returns a copy of the timings.
+func (c *ConnInfo) Snapshot() Timings {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.Timings
+}
 
 type ctxKey struct{}
 
@@ -50,10 +83,18 @@ func FromContext(ctx context.Context) *ConnInfo {
 	return ci
 }
 
+// WithConnInfo attaches ci to ctx (used by other transports such as HTTP/3).
+func WithConnInfo(ctx context.Context, ci *ConnInfo) context.Context {
+	return context.WithValue(ctx, ctxKey{}, ci)
+}
+
 var connSeq atomic.Uint64
 
-// recordConn records the first bytes read (the ClientHello) and optionally
-// tees all bytes read into a sink.
+// NewConnID returns a process-unique connection id.
+func NewConnID() uint64 { return connSeq.Add(1) }
+
+// recordConn records the first bytes read (the ClientHello), tees all bytes
+// read into a sink and timestamps handshake milestones.
 type recordConn struct {
 	net.Conn
 	mu        sync.Mutex
@@ -63,22 +104,62 @@ type recordConn struct {
 	sink      io.Writer
 	state     func() tls.ConnectionState
 	info      *ConnInfo
+	tlsLayer  bool // raw (encrypted) side of a TLS connection
+	wrote     bool
 }
 
 func (c *recordConn) Read(p []byte) (int, error) {
 	n, err := c.Conn.Read(p)
 	if n > 0 {
+		now := time.Now()
 		c.mu.Lock()
 		if c.recording && len(c.rec) < c.limit {
 			c.rec = append(c.rec, p[:min(n, c.limit-len(c.rec))]...)
 		}
-		sink := c.sink
+		sink, wrote, recording, rec := c.sink, c.wrote, c.recording, c.rec
 		c.mu.Unlock()
+		ci := c.info
+		ci.mu.Lock()
+		t := &ci.Timings
+		if c.tlsLayer {
+			if t.FirstByte.IsZero() {
+				t.FirstByte = now
+			}
+			if recording && t.ClientHelloDone.IsZero() {
+				if _, perr := tlsfp.Parse(rec); perr == nil {
+					t.ClientHelloDone = now
+				}
+			}
+			if wrote && t.ClientFinished.IsZero() {
+				t.ClientFinished = now
+			}
+		} else if t.FirstRequestByte.IsZero() {
+			t.FirstRequestByte = now
+			if t.FirstByte.IsZero() {
+				t.FirstByte = now
+			}
+		}
+		ci.mu.Unlock()
 		if sink != nil {
 			sink.Write(p[:n])
 		}
 	}
 	return n, err
+}
+
+func (c *recordConn) Write(p []byte) (int, error) {
+	if c.tlsLayer {
+		c.mu.Lock()
+		first := !c.wrote
+		c.wrote = true
+		c.mu.Unlock()
+		if first {
+			c.info.mu.Lock()
+			c.info.Timings.ServerFlight = time.Now()
+			c.info.mu.Unlock()
+		}
+	}
+	return c.Conn.Write(p)
 }
 
 // ConnectionState lets net/http and x/net/http2 populate Request.TLS.
@@ -94,12 +175,13 @@ type Server struct {
 	Handler   http.Handler
 	TLSConfig *tls.Config
 	Logger    *log.Logger
+	// SYNs, when set, is consulted for the SYN fingerprint of new connections.
+	SYNs *tcpfp.SynTable
 
-	once  sync.Once
-	h1    *http.Server
-	h2    *http2.Server
-	h1Ch  chan net.Conn
-	errCh chan error
+	once sync.Once
+	h1   *http.Server
+	h2   *http2.Server
+	h1Ch chan net.Conn
 }
 
 func (s *Server) init() {
@@ -134,6 +216,13 @@ func (s *Server) logf(format string, args ...any) {
 	}
 }
 
+func (s *Server) newInfo(raw net.Conn) *ConnInfo {
+	info := &ConnInfo{ID: NewConnID(), RemoteAddr: raw.RemoteAddr().String(), LocalAddr: raw.LocalAddr().String(), AcceptedAt: time.Now(), raw: raw}
+	info.Timings.Accepted = info.AcceptedAt
+	info.SYN = s.SYNs.Lookup(info.RemoteAddr)
+	return info
+}
+
 // ServeTLS accepts raw TCP connections on ln and performs the TLS handshake
 // itself while capturing the ClientHello.
 func (s *Server) ServeTLS(ln net.Listener) error {
@@ -153,12 +242,16 @@ func (s *Server) ServeTLS(ln net.Listener) error {
 }
 
 func (s *Server) handleTLS(raw net.Conn) {
-	info := &ConnInfo{ID: connSeq.Add(1), RemoteAddr: raw.RemoteAddr().String(), LocalAddr: raw.LocalAddr().String(), AcceptedAt: time.Now()}
-	rc := &recordConn{Conn: raw, recording: true, limit: 64 << 10, info: info}
+	info := s.newInfo(raw)
+	rc := &recordConn{Conn: raw, recording: true, limit: 64 << 10, info: info, tlsLayer: true}
 	tc := tls.Server(rc, s.TLSConfig)
 	raw.SetDeadline(time.Now().Add(15 * time.Second))
 	err := tc.Handshake()
-	info.HandshakeTime = time.Since(info.AcceptedAt)
+	now := time.Now()
+	info.HandshakeTime = now.Sub(info.AcceptedAt)
+	info.mu.Lock()
+	info.Timings.HandshakeDone = now
+	info.mu.Unlock()
 
 	rc.mu.Lock()
 	rc.recording = false
@@ -169,6 +262,9 @@ func (s *Server) handleTLS(raw net.Conn) {
 		info.TLS = ch.Fingerprint(false)
 	} else {
 		info.TLSError = perr.Error()
+	}
+	if info.SYN == nil {
+		info.SYN = s.SYNs.Lookup(info.RemoteAddr) // capture goroutine may lag slightly
 	}
 	if err != nil {
 		raw.Close()
@@ -201,17 +297,22 @@ func (s *Server) handleTLS(raw net.Conn) {
 // ServePlain serves cleartext HTTP/1.x on ln, still capturing header order.
 func (s *Server) ServePlain(ln net.Listener) error {
 	s.init()
-	return s.h1.Serve(&plainListener{Listener: ln})
+	return s.h1.Serve(&plainListener{Listener: ln, s: s})
 }
 
-type plainListener struct{ net.Listener }
+type plainListener struct {
+	net.Listener
+	s *Server
+}
 
 func (l *plainListener) Accept() (net.Conn, error) {
 	c, err := l.Listener.Accept()
 	if err != nil {
 		return nil, err
 	}
-	info := &ConnInfo{ID: connSeq.Add(1), RemoteAddr: c.RemoteAddr().String(), LocalAddr: c.LocalAddr().String(), AcceptedAt: time.Now(), Protocol: "http/1.1 (cleartext)", H1: httpfp.NewTracker()}
+	info := l.s.newInfo(c)
+	info.Protocol = "http/1.1 (cleartext)"
+	info.H1 = httpfp.NewTracker()
 	return &recordConn{Conn: c, info: info, sink: info.H1}, nil
 }
 

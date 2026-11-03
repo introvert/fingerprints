@@ -25,8 +25,8 @@ func TestTrackerOrderAndBodies(t *testing.T) {
 
 func TestJA4H(t *testing.T) {
 	h := []Header{
-		{"Host", "x"}, {"User-Agent", "u"}, {"Accept", "*/*"}, {"Accept-Language", "en-US,en;q=0.9"},
-		{"Cookie", "b=2; a=1"}, {"Referer", "https://r/"},
+		{Name: "Host", Value: "x"}, {Name: "User-Agent", Value: "u"}, {Name: "Accept", Value: "*/*"}, {Name: "Accept-Language", Value: "en-US,en;q=0.9"},
+		{Name: "Cookie", Value: "b=2; a=1"}, {Name: "Referer", Value: "https://r/"},
 	}
 	ja4h, raw := JA4H("GET", "11", h)
 	if !strings.HasPrefix(ja4h, "ge11cr04enus_") {
@@ -38,7 +38,7 @@ func TestJA4H(t *testing.T) {
 	if parts := strings.Split(ja4h, "_"); len(parts) != 4 || len(parts[1]) != 12 {
 		t.Errorf("bad shape %s", ja4h)
 	}
-	none, _ := JA4H("POST", "20", []Header{{":method", "POST"}, {"accept", "*/*"}})
+	none, _ := JA4H("POST", "20", []Header{{Name: ":method", Value: "POST"}, {Name: "accept", Value: "*/*"}})
 	if !strings.HasPrefix(none, "po20nn010000_") || !strings.HasSuffix(none, "_000000000000_000000000000") {
 		t.Errorf("no cookie ja4h = %s", none)
 	}

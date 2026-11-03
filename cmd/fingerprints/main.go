@@ -10,11 +10,13 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"flag"
+	"fmt"
 	"log"
 	"math/big"
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +25,7 @@ import (
 	"github.com/introvert/fingerprints/internal/capture"
 	"github.com/introvert/fingerprints/internal/server"
 	"github.com/introvert/fingerprints/internal/store"
+	"github.com/introvert/fingerprints/internal/tcpfp"
 )
 
 func main() {
@@ -39,6 +42,8 @@ func main() {
 		trustProxy = flag.Bool("trust-proxy", false, "trust X-Forwarded-For / X-Forwarded-Proto headers")
 		adminToken = flag.String("admin-token", os.Getenv("FP_ADMIN_TOKEN"), "token required for listing/related/delete (env FP_ADMIN_TOKEN)")
 		readOnly   = flag.Bool("read-only", false, "disable storing new fingerprints")
+		synCapture = flag.Bool("syn-capture", true, "capture client SYN packets for TCP/IP fingerprints (JA4T, TTL, MSS; Linux, needs CAP_NET_RAW; failure is non-fatal)")
+		h3         = flag.Bool("http3", true, "serve HTTP/3 (QUIC) on the UDP port of -https and fingerprint QUIC Initial packets")
 	)
 	flag.Parse()
 
@@ -54,9 +59,13 @@ func main() {
 		defer st.Close()
 	}
 
-	h := server.New(server.Config{
-		PublicURL: *publicURL, TrustProxy: *trustProxy, AdminToken: *adminToken, ReadOnly: *readOnly,
-	}, st)
+	cfg := server.Config{PublicURL: *publicURL, TrustProxy: *trustProxy, AdminToken: *adminToken, ReadOnly: *readOnly}
+	if *h3 && *httpsAddr != "" {
+		if _, port, err := net.SplitHostPort(*httpsAddr); err == nil {
+			cfg.AltSvc = fmt.Sprintf(`h3=":%s"; ma=86400`, port)
+		}
+	}
+	h := server.New(cfg, st)
 
 	tlsCfg := &tls.Config{
 		MinVersion: tls.VersionTLS10, // accept old clients so we can fingerprint them
@@ -87,7 +96,23 @@ func main() {
 	}
 
 	srv := &capture.Server{Handler: h, TLSConfig: tlsCfg}
-	errc := make(chan error, 2)
+	if *synCapture {
+		var ports []int
+		for _, a := range []string{*httpsAddr, *httpAddr} {
+			if _, p, err := net.SplitHostPort(a); err == nil {
+				if n, err := strconv.Atoi(p); err == nil {
+					ports = append(ports, n)
+				}
+			}
+		}
+		if t, err := tcpfp.StartSYNCapture(ports); err != nil {
+			log.Printf("SYN capture disabled: %v", err)
+		} else {
+			srv.SYNs = t
+			log.Printf("capturing TCP SYN fingerprints on ports %v", ports)
+		}
+	}
+	errc := make(chan error, 3)
 	if *httpsAddr != "" {
 		ln, err := net.Listen("tcp", *httpsAddr)
 		if err != nil {
@@ -95,6 +120,14 @@ func main() {
 		}
 		log.Printf("HTTPS (TLS + HTTP/2 fingerprinting) on https://%s", ln.Addr())
 		go func() { errc <- srv.ServeTLS(ln) }()
+		if *h3 {
+			pc, err := net.ListenPacket("udp", *httpsAddr)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("HTTP/3 (QUIC fingerprinting) on udp://%s", pc.LocalAddr())
+			go func() { errc <- srv.ServeH3(pc) }()
+		}
 	}
 	if *httpAddr != "" {
 		ln, err := net.Listen("tcp", *httpAddr)

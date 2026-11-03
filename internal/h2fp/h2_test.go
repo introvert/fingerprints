@@ -56,6 +56,9 @@ func TestAkamaiFingerprint(t *testing.T) {
 	if hb == nil || hb.Headers[4].Name != "content-type" {
 		t.Fatalf("second request headers: %+v", hb)
 	}
+	if f.HPACKCodes == "" || f.FirstHeaders.Headers[0].HPACK == nil || len(f.Frames) < 4 || f.Frames[0].Type != "SETTINGS" {
+		t.Errorf("hpack/frames missing: codes=%q frames=%d", f.HPACKCodes, len(f.Frames))
+	}
 	if tr.RequestHeaders("POST", "/y") != nil {
 		t.Error("header block returned twice")
 	}

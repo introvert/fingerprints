@@ -613,7 +613,8 @@
   C.worker = () => new Promise((resolve, reject) => {
     const src = `self.onmessage=async()=>{const n=self.navigator;let gl=null;try{const c=new OffscreenCanvas(1,1).getContext('webgl');const d=c.getExtension('WEBGL_debug_renderer_info');gl=d?[c.getParameter(d.UNMASKED_VENDOR_WEBGL),c.getParameter(d.UNMASKED_RENDERER_WEBGL)]:[c.getParameter(c.VENDOR),c.getParameter(c.RENDERER)];}catch(e){}
 let uad=null;try{uad=n.userAgentData?await n.userAgentData.getHighEntropyValues(['platformVersion','architecture','bitness']):null}catch(e){}
-postMessage({userAgent:n.userAgent,platform:n.platform,language:n.language,languages:n.languages?[...n.languages]:null,hardwareConcurrency:n.hardwareConcurrency,deviceMemory:n.deviceMemory,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,webgl:gl,userAgentData:uad,webdriver:n.webdriver});};`;
+let cv=null;try{const oc=new OffscreenCanvas(200,40),x=oc.getContext('2d');x.font='16px Arial';x.fillStyle='#069';x.fillText('Cwm fjordbank gly 😃',2,20);const d=x.getImageData(0,0,200,40).data;let h=0;for(let i=0;i<d.length;i++)h=(h*31+d[i])|0;cv=(h>>>0).toString(16);}catch(e){}
+postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,language:n.language,languages:n.languages?[...n.languages]:null,hardwareConcurrency:n.hardwareConcurrency,deviceMemory:n.deviceMemory,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,webgl:gl,userAgentData:uad,webdriver:n.webdriver});};`;
     let url;
     try { url = URL.createObjectURL(new Blob([src], { type: 'application/javascript' })); } catch (e) { return reject(e); }
     const w = new Worker(url);
@@ -651,6 +652,9 @@ postMessage({userAgent:n.userAgent,platform:n.platform,language:n.language,langu
       console.debug(e);
     } catch (_) { /* ignore */ }
     sig.cdpRuntimeEnabled = cdp;
+    sig.headlessBrands = safe(() => navigator.userAgentData.brands.some((b) => /Headless/i.test(b.brand)), false);
+    sig.zeroConnectionRtt = safe(() => navigator.connection.rtt === 0 && /Chrome/.test(n.userAgent) && !/Mobile/.test(n.userAgent), false);
+    sig.noOuterChrome = !/Mobile|Android|iPhone|iPad/.test(n.userAgent) && w.outerHeight > 0 && w.outerHeight === w.innerHeight && w.outerWidth === w.innerWidth && !document.fullscreenElement;
     sig.stackHasAutomation = safe(() => /puppeteer_evaluation_script|__playwright|pptr:|selenium/i.test(new Error().stack), false);
     return sig;
   };
@@ -706,7 +710,196 @@ postMessage({userAgent:n.userAgent,platform:n.platform,language:n.language,langu
     return { lies, iframe };
   };
 
-  const ORDER = ['navigator', 'userAgentData', 'screen', 'window', 'document', 'intl', 'mediaQueries', 'canvas', 'emoji', 'domRect', 'svg', 'webgl', 'webgl2', 'webgpu', 'audio', 'fonts', 'fontPreferences', 'math', 'jsEngine', 'features', 'cssSupports', 'codecs', 'speech', 'mediaDevices', 'permissions', 'storage', 'battery', 'connection', 'touch', 'keyboard', 'webrtc', 'gamepads', 'xr', 'applePay', 'timing', 'worker', 'automation', 'tampering'];
+
+  // ===== additions from the library gap review (FingerprintJS / CreepJS / BrowserLeaks) =====
+
+  // Ad / content blocker detection (bait elements, as FingerprintJS "domBlockers").
+  C.domBlockers = async () => {
+    const baits = {
+      generic: ['adsbox', 'ad-banner', 'ad-placeholder', 'adsbygoogle', 'pub_300x250', 'textAd', 'banner-ads', 'sponsored-ad'],
+      ids: ['ad_banner', 'ad-slot', 'carbonads', 'google_ads_frame'],
+    };
+    const root = document.createElement('div');
+    root.style.cssText = 'position:absolute;left:-9999px;top:0';
+    const els = [];
+    for (const c of baits.generic) { const e = document.createElement('div'); e.className = c; e.innerHTML = '&nbsp;'; e.style.height = '10px'; root.appendChild(e); els.push(['.' + c, e]); }
+    for (const id of baits.ids) { const e = document.createElement('div'); e.id = id; e.innerHTML = '&nbsp;'; e.style.height = '10px'; root.appendChild(e); els.push(['#' + id, e]); }
+    document.body.appendChild(root);
+    await sleep(60);
+    const blocked = els.filter(([, e]) => !e.offsetParent || e.offsetHeight === 0 || getComputedStyle(e).display === 'none').map(([s]) => s);
+    root.remove();
+    let scriptBlocked = null;
+    try {
+      const r = await withTimeout(fetch('/static/ads.js?adtag=1&ad_slot=1', { cache: 'no-store' }), 1500);
+      scriptBlocked = !r.ok;
+    } catch (e) { scriptBlocked = true; }
+    return { blocked, adblock: blocked.length > 0 || scriptBlocked === true, baitRequestBlocked: scriptBlocked };
+  };
+
+  // Browser-specific globals ("vendorFlavors").
+  C.vendorFlavors = () => {
+    const keys = ['chrome', 'safari', '__crWeb', '__gCrWeb', 'yandex', '__yb', '__ybro', '__firefox__', '__edgeTrackingPreventionStatistics', 'webkit', 'oprt', 'samsungAr', 'ucweb', 'UCShellJava', 'puffinDevice', 'opr', 'brave', 'duckduckgo', 'msWriteProfilerMark', 'InstallTrigger', 'mozRTCPeerConnection', 'onmozfullscreenchange'];
+    return keys.filter((k) => safe(() => global[k] !== undefined && global[k] !== null, false) || (k === 'brave' && !!navigator.brave) || (k === 'duckduckgo' && !!navigator.duckduckgo));
+  };
+
+  C.privateClickMeasurement = () => {
+    const a = document.createElement('a');
+    return { attributionSourceId: a.attributionSourceId ?? a.attributionsourceid ?? null, attributionSrc: 'attributionSrc' in a };
+  };
+
+  // CSS system colours reveal OS / theme / accessibility settings.
+  C.systemColors = () => {
+    const names = ['AccentColor', 'AccentColorText', 'ActiveText', 'ButtonBorder', 'ButtonFace', 'ButtonText', 'Canvas', 'CanvasText', 'Field', 'FieldText', 'GrayText', 'Highlight', 'HighlightText', 'LinkText', 'Mark', 'MarkText', 'SelectedItem', 'SelectedItemText', 'VisitedText', 'ActiveBorder', 'ActiveCaption', 'AppWorkspace', 'Background', 'ButtonHighlight', 'ButtonShadow', 'CaptionText', 'InactiveBorder', 'InactiveCaption', 'InactiveCaptionText', 'InfoBackground', 'InfoText', 'Menu', 'MenuText', 'Scrollbar', 'ThreeDDarkShadow', 'ThreeDFace', 'ThreeDHighlight', 'ThreeDLightShadow', 'ThreeDShadow', 'Window', 'WindowFrame', 'WindowText', '-webkit-focus-ring-color'];
+    const el = document.createElement('div');
+    document.body.appendChild(el);
+    const out = {};
+    for (const n of names) { el.style.color = ''; el.style.color = n; out[n] = el.style.color ? getComputedStyle(el).color : null; }
+    const sysFonts = {};
+    for (const f of ['caption', 'icon', 'menu', 'message-box', 'small-caption', 'status-bar', 'system-ui']) {
+      el.style.font = ''; el.style.font = f === 'system-ui' ? '12px system-ui' : f;
+      const cs = getComputedStyle(el); sysFonts[f] = cs.fontSize + ' ' + cs.fontFamily;
+    }
+    el.remove();
+    return { colors: out, fonts: sysFonts, hash: hash(JSON.stringify([out, sysFonts])) };
+  };
+
+  // Property counts track the exact engine version (CreepJS-style).
+  C.engineSurface = () => {
+    const count = (o) => safe(() => Object.getOwnPropertyNames(o).length);
+    return {
+      windowProps: count(global), documentProps: count(Document.prototype), htmlElementProps: count(HTMLElement.prototype),
+      elementProps: count(Element.prototype), navigatorProps: count(Navigator.prototype), cssStyleProps: safe(() => getComputedStyle(document.documentElement).length),
+      cssPropertyNames: safe(() => Object.getOwnPropertyNames(CSSStyleDeclaration.prototype).length), mathProps: count(Math),
+      intlProps: count(Intl), webglProps: safe(() => count(WebGLRenderingContext.prototype)), errorProps: count(Error),
+      permissionsPolicy: safe(() => (document.featurePolicy || document.permissionsPolicy).allowedFeatures().sort()),
+      maxCallStack: (() => { let d = 0; const f = () => { d++; f(); }; try { f(); } catch (e) { /* overflow */ } return d; })(),
+    };
+  };
+
+  // Detection of anti-fingerprinting modes (Brave, Tor, Firefox RFP, DuckDuckGo, Safari).
+  C.resistance = async () => {
+    const d = [];
+    if (navigator.brave) { try { if (await navigator.brave.isBrave()) d.push('brave'); } catch (e) { d.push('brave'); } }
+    if (navigator.duckduckgo) d.push('duckduckgo');
+    const ff = /Firefox\//.test(navigator.userAgent);
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (ff && tz === 'UTC' && new Date().getTimezoneOffset() === 0) d.push('firefox_rfp_timezone');
+    if (ff && innerWidth % 200 === 0 && innerHeight % 100 === 0) d.push('tor_letterboxing_like');
+    if (ff && screen.width === innerWidth && screen.height === innerHeight && !document.fullscreenElement) d.push('firefox_rfp_screen');
+    if (ff && navigator.hardwareConcurrency === 2 && /rv:115|rv:128/.test(navigator.userAgent)) d.push('tor_browser_like');
+    const res = safe(() => { const a = performance.now(); let b = a; while (b === a) b = performance.now(); return b - a; }, 0);
+    if (res >= 16) d.push('coarse_timers(' + res.toFixed(1) + 'ms)');
+    return { detected: d, timerResolutionMs: res };
+  };
+
+  // Private / incognito mode heuristics.
+  C.privateMode = async () => {
+    const signals = [];
+    try {
+      const { quota } = await navigator.storage.estimate();
+      if (/Chrome\//.test(navigator.userAgent) && quota && quota < 1.2e9 && performance.memory) {
+        if (quota < performance.memory.jsHeapSizeLimit * 2) signals.push('chromium_small_quota');
+      }
+      if (/Safari\//.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)) {
+        try { await navigator.storage.getDirectory(); } catch (e) { if (/unknown transient/i.test(e.message)) signals.push('safari_opfs_unavailable'); }
+      }
+    } catch (e) { /* ignore */ }
+    if (/Firefox\//.test(navigator.userAgent) && !navigator.serviceWorker) signals.push('firefox_no_service_worker');
+    return { likely: signals.length > 0, signals };
+  };
+
+  C.imageFormats = async () => {
+    const imgs = {
+      webp: 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==',
+      avif: 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=',
+      jxl: 'data:image/jxl;base64,/woIELASCAgQAFwASxLFgkWAHL0xqnCBCV0qDp901Te/5QM=',
+    };
+    const out = {};
+    await Promise.all(Object.entries(imgs).map(([k, src]) => new Promise((res) => {
+      const i = new Image();
+      const t = setTimeout(() => { out[k] = null; res(); }, 1500);
+      i.onload = () => { clearTimeout(t); out[k] = i.width > 0; res(); };
+      i.onerror = () => { clearTimeout(t); out[k] = false; res(); };
+      i.src = src;
+    })));
+    return out;
+  };
+
+  // Navigation Timing of this page + paint timings.
+  C.navigationTiming = () => {
+    const n = performance.getEntriesByType('navigation')[0];
+    if (!n) return { supported: false };
+    const r = (v) => (v == null ? null : +v.toFixed(2));
+    return {
+      nextHopProtocol: n.nextHopProtocol, type: n.type, deliveryType: n.deliveryType, renderBlockingStatus: n.renderBlockingStatus,
+      redirectCount: n.redirectCount, transferSize: n.transferSize, encodedBodySize: n.encodedBodySize, decodedBodySize: n.decodedBodySize,
+      dnsMs: r(n.domainLookupEnd - n.domainLookupStart), connectMs: r(n.connectEnd - n.connectStart),
+      tlsMs: n.secureConnectionStart > 0 ? r(n.connectEnd - n.secureConnectionStart) : null,
+      requestToFirstByteMs: r(n.responseStart - n.requestStart), firstInterimResponseStart: r(n.firstInterimResponseStart),
+      downloadMs: r(n.responseEnd - n.responseStart), domInteractiveMs: r(n.domInteractive), domContentLoadedMs: r(n.domContentLoadedEventEnd), loadMs: r(n.loadEventEnd),
+      workerStart: r(n.workerStart), serverTiming: (n.serverTiming || []).map((s) => ({ name: s.name, duration: s.duration, description: s.description })),
+      paint: performance.getEntriesByType('paint').map((p) => [p.name, r(p.startTime)]),
+    };
+  };
+
+  // Round-trip probes against /api/ping: client RTT, jitter, clock skew and
+  // the protocol actually used (h3 after Alt-Svc, h2, http/1.1).
+  C.latency = async (opts) => {
+    const url = opts.pingUrl || '/api/ping';
+    const samples = [], skews = [], protos = new Set(), conns = new Set();
+    for (let i = 0; i < (opts.pings || 6); i++) {
+      const t0 = performance.now(), wall0 = Date.now();
+      const r = await withTimeout(fetch(url + '?i=' + i + '&t=' + wall0, { cache: 'no-store' }), 3000);
+      const j = await r.json();
+      const t1 = performance.now();
+      samples.push(t1 - t0);
+      skews.push(j.server_time_unix_ms - (wall0 + (t1 - t0) / 2));
+      if (j.protocol) protos.add(j.protocol);
+      if (j.connection_id) conns.add(j.connection_id);
+      const e = performance.getEntriesByName(r.url).pop();
+      if (e && e.nextHopProtocol) protos.add('resource:' + e.nextHopProtocol);
+    }
+    const sorted = samples.slice(1).sort((a, b) => a - b); // first may include connection setup
+    const med = sorted[Math.floor(sorted.length / 2)];
+    const sk = skews.slice(1).sort((a, b) => a - b);
+    return {
+      samplesMs: samples.map((v) => +v.toFixed(2)), medianRttMs: +med.toFixed(2), minRttMs: +sorted[0].toFixed(2),
+      jitterMs: +(sorted[sorted.length - 1] - sorted[0]).toFixed(2), clockSkewMs: +sk[Math.floor(sk.length / 2)].toFixed(1),
+      protocols: [...protos], connections: conns.size,
+    };
+  };
+
+  // Shared worker scope (another realm spoofers often miss).
+  const WORKER_PROBE = `const n=self.navigator;const info=()=>({userAgent:n.userAgent,platform:n.platform,language:n.language,languages:n.languages?[...n.languages]:null,hardwareConcurrency:n.hardwareConcurrency,deviceMemory:n.deviceMemory,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,webdriver:n.webdriver});`;
+  C.sharedWorker = () => new Promise((resolve, reject) => {
+    if (!global.SharedWorker) return resolve({ supported: false });
+    const url = URL.createObjectURL(new Blob([WORKER_PROBE + 'onconnect=(e)=>{const p=e.ports[0];p.postMessage(info());};'], { type: 'application/javascript' }));
+    let w;
+    try { w = new SharedWorker(url); } catch (e) { return resolve({ supported: true, error: String(e) }); }
+    const t = setTimeout(() => reject(new Error('shared worker timeout')), 2500);
+    w.port.onmessage = (e) => { clearTimeout(t); URL.revokeObjectURL(url); resolve(Object.assign({ supported: true }, e.data)); };
+    w.port.start();
+  });
+
+  // Service worker scope (registered under /static/ and removed afterwards).
+  C.serviceWorker = async () => {
+    if (!navigator.serviceWorker || !global.isSecureContext) return { supported: false };
+    const reg = await withTimeout(navigator.serviceWorker.register('/static/fp-sw.js', { scope: '/static/fp-sw/' }), 3000);
+    try {
+      const sw = reg.installing || reg.waiting || reg.active;
+      if (sw.state !== 'activated') await withTimeout(new Promise((r) => sw.addEventListener('statechange', () => sw.state === 'activated' && r())), 3000);
+      const data = await withTimeout(new Promise((res) => {
+        const ch = new MessageChannel();
+        ch.port1.onmessage = (e) => res(e.data);
+        sw.postMessage('fp', [ch.port2]);
+      }), 2000);
+      return Object.assign({ supported: true }, data);
+    } finally {
+      reg.unregister();
+    }
+  };
+
+  const ORDER = ['navigator', 'userAgentData', 'screen', 'window', 'document', 'intl', 'mediaQueries', 'canvas', 'emoji', 'domRect', 'svg', 'webgl', 'webgl2', 'webgpu', 'audio', 'fonts', 'fontPreferences', 'math', 'jsEngine', 'features', 'cssSupports', 'codecs', 'speech', 'mediaDevices', 'permissions', 'storage', 'battery', 'connection', 'touch', 'keyboard', 'webrtc', 'gamepads', 'xr', 'applePay', 'timing', 'worker', 'sharedWorker', 'serviceWorker', 'automation', 'tampering', 'domBlockers', 'vendorFlavors', 'privateClickMeasurement', 'systemColors', 'engineSurface', 'resistance', 'privateMode', 'imageFormats', 'navigationTiming', 'latency'];
 
   async function runComponent(name, opts) {
     const t0 = performance.now();

@@ -30,6 +30,9 @@ func format(r *http.Request) string {
 
 func (s *Server) write(w http.ResponseWriter, r *http.Request, status int, v any) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if f := r.URL.Query().Get("fields"); f != "" {
+		v = pickFields(v, strings.Split(f, ","))
+	}
 	switch format(r) {
 	case "text", "txt", "plain":
 		raw, _ := json.Marshal(v)
@@ -127,4 +130,50 @@ func scalar(x any) string {
 	default:
 		return fmt.Sprint(t)
 	}
+}
+
+// pickFields keeps only the given dotted paths (e.g. "tls.ja4,http2,summary").
+func pickFields(v any, paths []string) any {
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return v
+	}
+	var src any
+	if json.Unmarshal(raw, &src) != nil {
+		return v
+	}
+	out := map[string]any{}
+	for _, p := range paths {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		parts := strings.Split(p, ".")
+		cur := src
+		ok := true
+		for _, k := range parts {
+			m, isMap := cur.(map[string]any)
+			if !isMap {
+				ok = false
+				break
+			}
+			if cur, ok = m[k]; !ok {
+				break
+			}
+		}
+		if !ok {
+			continue
+		}
+		dst := out
+		for _, k := range parts[:len(parts)-1] {
+			next, _ := dst[k].(map[string]any)
+			if next == nil {
+				next = map[string]any{}
+				dst[k] = next
+			}
+			dst = next
+		}
+		dst[parts[len(parts)-1]] = cur
+	}
+	return out
 }
