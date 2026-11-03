@@ -39,7 +39,7 @@ func StartSYNCapture(ports []int) (*SynTable, error) {
 			if sa, ok := from.(*unix.SockaddrLinklayer); ok && sa.Pkttype == unix.PACKET_OUTGOING {
 				continue
 			}
-			if s, key := parseSYN(buf[:n], want); s != nil {
+			if s, key := safeParse(buf[:n], want); s != nil {
 				t.put(key, s)
 			}
 		}
@@ -59,7 +59,7 @@ func parseSYN(p []byte, ports map[int]bool) (*SYN, string) {
 	switch p[0] >> 4 {
 	case 4:
 		ihl := int(p[0]&0x0f) * 4
-		if p[9] != 6 || len(p) < ihl+20 {
+		if ihl < 20 || p[9] != 6 || len(p) < ihl+20 {
 			return nil, ""
 		}
 		s.IPVersion = 4
@@ -106,7 +106,7 @@ func parseSYN(p []byte, ports map[int]bool) (*SYN, string) {
 	}
 	s.Window = int(binary.BigEndian.Uint16(tcp[14:]))
 	off := int(tcp[12]>>4) * 4
-	if off > len(tcp) {
+	if off < 20 || off > len(tcp) {
 		return nil, ""
 	}
 	opts := tcp[20:off]
@@ -211,4 +211,14 @@ func trimNul(s string) string {
 		}
 	}
 	return s
+}
+
+// safeParse never lets a malformed packet crash the capture goroutine.
+func safeParse(p []byte, ports map[int]bool) (s *SYN, key string) {
+	defer func() {
+		if recover() != nil {
+			s, key = nil, ""
+		}
+	}()
+	return parseSYN(p, ports)
 }

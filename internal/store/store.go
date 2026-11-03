@@ -162,7 +162,9 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 type Filter struct {
 	JA3, JA4, HTTP2, BrowserHash, CombinedHash, VisitorID, IP, Label string
 	Before                                                           time.Time
-	Limit                                                            int
+	// BeforeID is a pagination cursor: results strictly older than that record.
+	BeforeID string
+	Limit    int
 }
 
 // List returns summaries matching f, newest first.
@@ -187,6 +189,10 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Summary, error) {
 		where = append(where, "created_at < ?")
 		args = append(args, f.Before.UnixMilli())
 	}
+	if f.BeforeID != "" {
+		where = append(where, "(created_at < (SELECT created_at FROM fingerprints WHERE id = ?) OR (created_at = (SELECT created_at FROM fingerprints WHERE id = ?) AND id < ?))")
+		args = append(args, f.BeforeID, f.BeforeID, f.BeforeID)
+	}
 	q := `SELECT ` + cols + ` FROM fingerprints`
 	if len(where) > 0 {
 		q += " WHERE " + strings.Join(where, " AND ")
@@ -195,7 +201,7 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Summary, error) {
 		f.Limit = 50
 	}
 	f.Limit = min(f.Limit, 10000)
-	q += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d", f.Limit)
+	q += fmt.Sprintf(" ORDER BY created_at DESC, id DESC LIMIT %d", f.Limit)
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err

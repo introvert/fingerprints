@@ -28,6 +28,12 @@ var (
 )
 
 const (
+	maxInitialPackets = 16
+	maxCryptoBytes    = 64 << 10
+	maxEntries        = 20000
+)
+
+const (
 	versionV1 = 0x00000001
 	versionV2 = 0x6b3343cf
 )
@@ -65,13 +71,14 @@ type Fingerprint struct {
 }
 
 type state struct {
-	fp       *Fingerprint
-	dcid     string
-	crypto   map[uint64][]byte
-	lastOff  uint64
-	ordered  bool
-	done     bool
-	lastSeen time.Time
+	fp          *Fingerprint
+	dcid        string
+	crypto      map[uint64][]byte
+	lastOff     uint64
+	ordered     bool
+	done        bool
+	lastSeen    time.Time
+	cryptoBytes int
 }
 
 // Table tracks Initial flights by client address.
@@ -101,9 +108,6 @@ func (t *Table) Observe(addr string, d []byte) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	s := t.m[addr]
-	if s != nil && s.done {
-		return
-	}
 	pkts := 0
 	for len(d) > 0 && d[0]&0x80 != 0 {
 		n, err := t.packet(addr, d, &s, len(d))
@@ -116,12 +120,19 @@ func (t *Table) Observe(addr string, d []byte) {
 	if s != nil && pkts > 1 {
 		s.fp.Coalesced = true
 	}
-	if len(t.m) > 20000 {
+	if len(t.m) > maxEntries {
 		cut := time.Now().Add(-2 * time.Minute)
 		for k, v := range t.m {
 			if v.lastSeen.Before(cut) {
 				delete(t.m, k)
 			}
+		}
+		// still full (flood): drop arbitrary entries so we never scan on every packet
+		for k := range t.m {
+			if len(t.m) <= maxEntries*9/10 {
+				break
+			}
+			delete(t.m, k)
 		}
 	}
 }
@@ -184,7 +195,33 @@ func (t *Table) packet(addr string, b []byte, sp **state, dgram int) (int, error
 		t.m[addr] = s
 		*sp = s
 	} else if s.dcid != hex.EncodeToString(dcid) {
-		return end, nil // different connection attempt from the same port
+		// After the server replies, the client's Initials carry the
+		// server-chosen DCID (ACKs only). Only a packet that starts a fresh
+		// ClientHello (CRYPTO at offset 0) means a new connection from this
+		// address (socket reuse / NAT); then the old entry is replaced.
+		if !s.done {
+			return end, nil
+		}
+		payload, _, _, err := decryptInitial(version, dcid, b[:end], off)
+		if err != nil {
+			return end, nil
+		}
+		probe := &state{fp: &Fingerprint{}, crypto: map[uint64][]byte{}}
+		probe.frames(payload)
+		if _, fresh := probe.crypto[0]; !fresh {
+			return end, nil
+		}
+		s = &state{fp: &Fingerprint{FirstSeen: time.Now(), DCIDLength: dl, SCIDLength: sl, TokenLength: tokenLen, Version: s.fp.Version}, dcid: hex.EncodeToString(dcid), crypto: map[uint64][]byte{}, ordered: true}
+		t.m[addr] = s
+		*sp = s
+	}
+	if s.done {
+		return end, nil
+	}
+	if s.fp.InitialPackets >= maxInitialPackets || s.cryptoBytes > maxCryptoBytes {
+		s.done = true // give up: not a real ClientHello flight
+		s.fp.TLSError = "ClientHello not completed within limits"
+		return end, nil
 	}
 	s.lastSeen = time.Now()
 	payload, pn, pnLen, err := decryptInitial(version, dcid, b[:end], off)
@@ -259,6 +296,7 @@ func (s *state) frames(p []byte) []string {
 			}
 			data := p[n1+n2 : n1+n2+int(l)]
 			s.crypto[o] = append([]byte(nil), data...)
+			s.cryptoBytes += len(data)
 			if o < s.lastOff {
 				s.ordered = false
 			}
@@ -397,7 +435,10 @@ type TeeConn struct {
 func (c *TeeConn) ReadFrom(p []byte) (int, net.Addr, error) {
 	n, addr, err := c.PacketConn.ReadFrom(p)
 	if n > 0 && addr != nil {
-		c.Table.Observe(addr.String(), p[:n])
+		func() {
+			defer func() { recover() }() // fingerprinting must never break QUIC serving
+			c.Table.Observe(addr.String(), p[:n])
+		}()
 	}
 	return n, addr, err
 }

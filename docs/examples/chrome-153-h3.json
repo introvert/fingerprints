@@ -1,0 +1,4293 @@
+{
+  "analysis": {
+    "checks": [
+      {
+        "detail": "UA looks like chromium, TLS ClientHello looks like chromium",
+        "name": "tls_matches_user_agent",
+        "status": "pass"
+      },
+      {
+        "detail": "user agent advertises a headless browser",
+        "name": "headless_user_agent",
+        "status": "fail"
+      },
+      {
+        "name": "navigation_fetch_metadata",
+        "status": "pass"
+      },
+      {
+        "name": "user_agent_header_matches_js",
+        "status": "pass"
+      },
+      {
+        "detail": "header=\"en-US\" navigator.languages[0]=\"en-US\"",
+        "name": "accept_language_matches_js",
+        "status": "pass"
+      },
+      {
+        "detail": "Sec-CH-UA-Platform=\"Linux\" userAgentData.platform=\"Linux\"",
+        "name": "client_hints_platform_matches_js",
+        "status": "pass"
+      },
+      {
+        "name": "worker_matches_main_thread",
+        "status": "pass"
+      },
+      {
+        "detail": "headlessUA, swiftshader",
+        "name": "automation_signals",
+        "status": "fail"
+      },
+      {
+        "name": "api_tampering",
+        "status": "pass"
+      },
+      {
+        "name": "canvas_randomization",
+        "status": "pass"
+      },
+      {
+        "detail": "JS round-trip 3.0 ms vs transport RTT 0.1 ms (a large gap suggests a proxy/relay)",
+        "name": "rtt_consistency",
+        "status": "pass"
+      },
+      {
+        "name": "sharedWorker_matches_main_thread",
+        "status": "pass"
+      },
+      {
+        "name": "serviceWorker_matches_main_thread",
+        "status": "pass"
+      }
+    ],
+    "flags": [
+      "headless_user_agent",
+      "automation_signals"
+    ],
+    "suspicion_score": 80,
+    "tls_family": "chromium",
+    "ua_family": "chromium"
+  },
+  "api_url": "https://127.0.0.1:18443/api/fingerprints/6UxqRahRYshS",
+  "client": {
+    "components": {
+      "applePay": {
+        "duration_ms": 23.6,
+        "hash": "4debe0590d623070",
+        "value": {
+          "supported": false
+        }
+      },
+      "audio": {
+        "duration_ms": 175.5,
+        "hash": "7124169e184d93e2",
+        "value": {
+          "channelCountMode": "explicit",
+          "hash": "478ebd6e87b2971e",
+          "maxChannelCount": 2,
+          "sampleRate": 44100,
+          "sum": 124.04347776696522,
+          "supported": true
+        }
+      },
+      "audioContext": {
+        "duration_ms": 153.3,
+        "hash": "7d0351a643720675",
+        "value": {
+          "baseLatency": 0.01,
+          "outputLatency": 0,
+          "state": "suspended",
+          "supported": true
+        }
+      },
+      "automation": {
+        "duration_ms": 16.9,
+        "hash": "d7d74a6ae17c6245",
+        "value": {
+          "cdcVars": [],
+          "cdpRuntimeEnabled": false,
+          "chromeObjectMissing": false,
+          "detected": [
+            "headlessUA",
+            "swiftshader"
+          ],
+          "documentAttrs": [],
+          "electron": false,
+          "headlessBrands": false,
+          "headlessUA": true,
+          "nightmare": false,
+          "noLanguages": false,
+          "noOuterChrome": false,
+          "noPlugins": false,
+          "permissionsInconsistent": false,
+          "phantom": false,
+          "seleniumGlobals": [],
+          "stackHasAutomation": false,
+          "swiftshader": true,
+          "webdriver": false,
+          "webdriverDescriptorPatched": false,
+          "zeroConnectionRtt": false,
+          "zeroOuterSize": false
+        }
+      },
+      "battery": {
+        "duration_ms": 51.1,
+        "hash": "bd04fc30bb57750a",
+        "value": {
+          "charging": true,
+          "chargingTime": 0,
+          "dischargingTime": null,
+          "level": 1,
+          "supported": true
+        }
+      },
+      "canvas": {
+        "duration_ms": 249.9,
+        "hash": "063408548d999069",
+        "value": {
+          "hash": "05e45d3f1d9f1b5b",
+          "length": 18394,
+          "pixelSample": "2d6b3281bf6cb578",
+          "stable": true,
+          "supported": true,
+          "textMetrics": [
+            234.0153,
+            23,
+            6,
+            -1,
+            234.0703,
+            22
+          ],
+          "winding": true
+        }
+      },
+      "codecs": {
+        "duration_ms": 149.8,
+        "hash": "ab87420eca0de256",
+        "value": {
+          "audio": {
+            "audio/aac": "probably",
+            "audio/flac": "probably",
+            "audio/mp4; codecs=\"ac-3\"": "",
+            "audio/mp4; codecs=\"ec-3\"": "",
+            "audio/mp4; codecs=\"flac\"": "probably",
+            "audio/mp4; codecs=\"mp4a.40.2\"": "probably",
+            "audio/mp4; codecs=\"opus\"": "probably",
+            "audio/mpeg": "probably",
+            "audio/ogg; codecs=\"flac\"": "probably",
+            "audio/ogg; codecs=\"opus\"": "probably",
+            "audio/ogg; codecs=\"vorbis\"": "probably",
+            "audio/wav; codecs=\"1\"": "probably",
+            "audio/webm; codecs=\"opus\"": "probably",
+            "audio/x-caf": "",
+            "audio/x-m4a": "maybe"
+          },
+          "decodingInfo": {
+            "av1": [
+              true,
+              true,
+              false
+            ],
+            "h264": [
+              true,
+              true,
+              false
+            ],
+            "hevc": [
+              false,
+              false,
+              false
+            ],
+            "vp9": [
+              true,
+              true,
+              false
+            ]
+          },
+          "drm": {
+            "com.apple.fps": false,
+            "com.apple.fps.1_0": false,
+            "com.microsoft.playready": false,
+            "com.microsoft.playready.recommendation": false,
+            "com.widevine.alpha": true,
+            "org.w3.clearkey": true
+          },
+          "hash": "d09712519af6e918",
+          "mse": {
+            "application/vnd.apple.mpegurl": false,
+            "application/x-mpegURL": false,
+            "video/mp4; codecs=\"av01.0.05M.08\"": true,
+            "video/mp4; codecs=\"avc1.42E01E\"": true,
+            "video/mp4; codecs=\"avc1.640028\"": true,
+            "video/mp4; codecs=\"dvh1.05.06\"": false,
+            "video/mp4; codecs=\"hev1.1.6.L93.B0\"": false,
+            "video/mp4; codecs=\"hvc1.1.6.L93.B0\"": false,
+            "video/mp4; codecs=\"vp09.00.10.08\"": true,
+            "video/ogg; codecs=\"theora\"": false,
+            "video/quicktime": false,
+            "video/webm; codecs=\"av1\"": false,
+            "video/webm; codecs=\"vp8\"": true,
+            "video/webm; codecs=\"vp9\"": true,
+            "video/x-matroska": false
+          },
+          "recorder": {
+            "application/vnd.apple.mpegurl": false,
+            "application/x-mpegURL": false,
+            "audio/aac": false,
+            "audio/flac": false,
+            "audio/mp4; codecs=\"ac-3\"": false,
+            "audio/mp4; codecs=\"ec-3\"": false,
+            "audio/mp4; codecs=\"flac\"": false,
+            "audio/mp4; codecs=\"mp4a.40.2\"": false,
+            "audio/mp4; codecs=\"opus\"": true,
+            "audio/mpeg": false,
+            "audio/ogg; codecs=\"flac\"": false,
+            "audio/ogg; codecs=\"opus\"": false,
+            "audio/ogg; codecs=\"vorbis\"": false,
+            "audio/wav; codecs=\"1\"": false,
+            "audio/webm; codecs=\"opus\"": true,
+            "audio/x-caf": false,
+            "audio/x-m4a": false,
+            "video/mp4; codecs=\"av01.0.05M.08\"": true,
+            "video/mp4; codecs=\"avc1.42E01E\"": true,
+            "video/mp4; codecs=\"avc1.640028\"": true,
+            "video/mp4; codecs=\"dvh1.05.06\"": false,
+            "video/mp4; codecs=\"hev1.1.6.L93.B0\"": false,
+            "video/mp4; codecs=\"hvc1.1.6.L93.B0\"": false,
+            "video/mp4; codecs=\"vp09.00.10.08\"": false,
+            "video/ogg; codecs=\"theora\"": false,
+            "video/quicktime": false,
+            "video/webm; codecs=\"av1\"": true,
+            "video/webm; codecs=\"vp8\"": true,
+            "video/webm; codecs=\"vp9\"": true,
+            "video/x-matroska": true
+          },
+          "video": {
+            "application/vnd.apple.mpegurl": "maybe",
+            "application/x-mpegURL": "maybe",
+            "video/mp4; codecs=\"av01.0.05M.08\"": "probably",
+            "video/mp4; codecs=\"avc1.42E01E\"": "probably",
+            "video/mp4; codecs=\"avc1.640028\"": "probably",
+            "video/mp4; codecs=\"dvh1.05.06\"": "",
+            "video/mp4; codecs=\"hev1.1.6.L93.B0\"": "",
+            "video/mp4; codecs=\"hvc1.1.6.L93.B0\"": "",
+            "video/mp4; codecs=\"vp09.00.10.08\"": "probably",
+            "video/ogg; codecs=\"theora\"": "",
+            "video/quicktime": "",
+            "video/webm; codecs=\"av1\"": "",
+            "video/webm; codecs=\"vp8\"": "probably",
+            "video/webm; codecs=\"vp9\"": "probably",
+            "video/x-matroska": "maybe"
+          }
+        }
+      },
+      "connection": {
+        "duration_ms": 30.3,
+        "hash": "3e46e996862d78f9",
+        "value": {
+          "downlink": 1.5,
+          "effectiveType": "4g",
+          "rtt": 100,
+          "saveData": false,
+          "supported": true
+        }
+      },
+      "cssSupports": {
+        "duration_ms": 34.3,
+        "hash": "077e06a4bddf97ef",
+        "value": {
+          "bitmap": "11111111111111011111111111111111111111110011011111111111111111",
+          "hash": "aa0942da39fb7b2b",
+          "supported": {
+            "-moz-appearance: none": false,
+            "-webkit-backdrop-filter: blur(1px)": false,
+            "-webkit-mask: none": true,
+            "-webkit-touch-callout: none": false,
+            "accent-color: red": true,
+            "anchor-name: --a": true,
+            "animation-timeline: scroll()": true,
+            "appearance: base-select": true,
+            "aspect-ratio: 1": true,
+            "backdrop-filter: blur(1px)": true,
+            "color: color-mix(in srgb, red, blue)": true,
+            "color: contrast-color(red)": true,
+            "color: lab(50% 10 10)": true,
+            "color: light-dark(red, blue)": true,
+            "color: oklch(50% 0.1 10)": true,
+            "color: rgb(from red r g b)": true,
+            "contain-intrinsic-size: auto 100px": true,
+            "container-type: inline-size": true,
+            "content-visibility: auto": true,
+            "corner-shape: squircle": true,
+            "display: contents": true,
+            "display: flow-root": true,
+            "display: grid": true,
+            "field-sizing: content": true,
+            "font-palette: dark": true,
+            "font-size-adjust: from-font": true,
+            "hyphenate-character: \"-\"": true,
+            "initial-letter: 2": true,
+            "inset: 0": true,
+            "interpolate-size: allow-keywords": true,
+            "mask: none": true,
+            "math-depth: 1": true,
+            "offset-path: none": true,
+            "overflow: clip": true,
+            "paint-order: stroke": true,
+            "position-try: flip-block": true,
+            "reading-flow: normal": true,
+            "ruby-align: center": true,
+            "scrollbar-color: red blue": true,
+            "scrollbar-gutter: stable": true,
+            "selector(&)": true,
+            "selector(::target-text)": true,
+            "selector(:focus-visible)": true,
+            "selector(:has(a))": true,
+            "selector(:is(a))": true,
+            "selector(:popover-open)": true,
+            "selector(:state(x))": true,
+            "selector(:user-invalid)": true,
+            "text-box: trim-both cap alphabetic": true,
+            "text-wrap: balance": true,
+            "text-wrap: pretty": true,
+            "top: env(safe-area-inset-top)": true,
+            "transition-behavior: allow-discrete": true,
+            "translate: 1px": true,
+            "view-transition-name: a": true,
+            "white-space-collapse: collapse": true,
+            "width: 1cqi": true,
+            "width: 1dvh": true,
+            "width: 1rcap": true,
+            "width: calc-size(auto, size)": true,
+            "width: sibling-index()": false,
+            "zoom: 1": true
+          }
+        }
+      },
+      "document": {
+        "duration_ms": 271.7,
+        "hash": "619d90b48c7e5e80",
+        "value": {
+          "characterSet": "UTF-8",
+          "compatMode": "CSS1Compat",
+          "contentType": "text/html",
+          "cookieLength": 0,
+          "designMode": "off",
+          "dir": "",
+          "fullscreenEnabled": true,
+          "hasFocus": true,
+          "lang": "en",
+          "pictureInPictureEnabled": true,
+          "referrer": "",
+          "visibilityState": "visible"
+        }
+      },
+      "domBlockers": {
+        "duration_ms": 129.4,
+        "hash": "6b7de1327bbe61e5",
+        "value": {
+          "adblock": false,
+          "baitRequestBlocked": false,
+          "blocked": []
+        }
+      },
+      "domRect": {
+        "duration_ms": 230.7,
+        "hash": "917a4b680172a458",
+        "value": {
+          "hash": "85ef9d2388ed9991",
+          "values": [
+            -2.6012330055236816,
+            -13.31867504119873,
+            128.6555938720703,
+            66.6373519897461,
+            103.37879180908203,
+            60.875823974609375
+          ]
+        }
+      },
+      "emoji": {
+        "duration_ms": 237.2,
+        "hash": "9cf94cc9fe5942ad",
+        "value": {
+          "hash": "1d832c7a574e3f60",
+          "sizes": {
+            "☺": "49.016x59",
+            "🇸🇮": "59.891x59",
+            "🏳️‍🌈": "59.891x59",
+            "👩‍❤️‍👨": "59.891x59",
+            "😀": "59.891x59",
+            "🙂‍↕️": "59.891x59",
+            "🧑🏽‍💻": "59.891x59",
+            "🪿": "59.891x59",
+            "🫠": "59.891x59",
+            "🫨": "59.891x59"
+          }
+        }
+      },
+      "engineSurface": {
+        "duration_ms": 3.3,
+        "hash": "01274ab1adbae813",
+        "value": {
+          "cssPropertyNames": 10,
+          "cssStyleProps": 488,
+          "documentProps": 251,
+          "elementProps": 153,
+          "errorProps": 6,
+          "htmlElementProps": 144,
+          "intlProps": 13,
+          "mathProps": 45,
+          "navigatorProps": 68,
+          "permissionsPolicy": [
+            "accelerometer",
+            "aria-notify",
+            "autoplay",
+            "camera",
+            "captured-surface-control",
+            "ch-device-memory",
+            "ch-downlink",
+            "ch-dpr",
+            "ch-ect",
+            "ch-prefers-color-scheme",
+            "ch-prefers-reduced-motion",
+            "ch-prefers-reduced-transparency",
+            "ch-rtt",
+            "ch-save-data",
+            "ch-ua",
+            "ch-ua-arch",
+            "ch-ua-bitness",
+            "ch-ua-form-factors",
+            "ch-ua-full-version",
+            "ch-ua-full-version-list",
+            "ch-ua-high-entropy-values",
+            "ch-ua-mobile",
+            "ch-ua-model",
+            "ch-ua-platform",
+            "ch-ua-platform-version",
+            "ch-ua-wow64",
+            "ch-viewport-height",
+            "ch-viewport-width",
+            "ch-width",
+            "clipboard-read",
+            "clipboard-write",
+            "compute-pressure",
+            "cross-origin-isolated",
+            "deferred-fetch",
+            "deferred-fetch-minimal",
+            "digital-credentials-get",
+            "display-capture",
+            "encrypted-media",
+            "fullscreen",
+            "gamepad",
+            "geolocation",
+            "gyroscope",
+            "hid",
+            "identity-credentials-get",
+            "idle-detection",
+            "keyboard-map",
+            "language-detector",
+            "language-model",
+            "local-fonts",
+            "local-network",
+            "local-network-access",
+            "loopback-network",
+            "magnetometer",
+            "microphone",
+            "midi",
+            "on-device-speech-recognition",
+            "otp-credentials",
+            "payment",
+            "picture-in-picture",
+            "private-state-token-issuance",
+            "private-state-token-redemption",
+            "publickey-credentials-create",
+            "publickey-credentials-get",
+            "screen-wake-lock",
+            "serial",
+            "storage-access",
+            "summarizer",
+            "sync-xhr",
+            "tools",
+            "translator",
+            "usb",
+            "window-management",
+            "xr-spatial-tracking"
+          ],
+          "webglProps": 443,
+          "windowProps": 1230
+        }
+      },
+      "features": {
+        "duration_ms": 35.1,
+        "hash": "b36373e73068996e",
+        "value": {
+          "flags": {
+            "accelerometer": true,
+            "applePay": false,
+            "attributionReporting": true,
+            "audioWorklet": true,
+            "backgroundFetch": true,
+            "bluetooth": false,
+            "brave": false,
+            "caches": true,
+            "clipboard": true,
+            "compressionStream": true,
+            "computePressure": true,
+            "contacts": false,
+            "cookieStore": true,
+            "credentials": true,
+            "cssHighlights": true,
+            "cssPaintWorklet": true,
+            "customElements": true,
+            "deviceMotion": true,
+            "deviceOrientation": true,
+            "dialog": true,
+            "documentPictureInPicture": true,
+            "eyeDropper": true,
+            "fencedFrame": true,
+            "fileSystemAccess": true,
+            "gamepad": true,
+            "geolocation": true,
+            "hid": true,
+            "identityCredential": true,
+            "idleDetector": true,
+            "imageDecoder": true,
+            "indexedDB": true,
+            "ink": true,
+            "keyboard": true,
+            "languageModel": true,
+            "launchQueue": true,
+            "localStorage": true,
+            "locks": true,
+            "login": true,
+            "managed": true,
+            "mediaSession": true,
+            "mozInnerScreenX": false,
+            "msSaveBlob": false,
+            "navigationApi": true,
+            "nfc": false,
+            "notification": true,
+            "offscreenCanvas": true,
+            "onLine": true,
+            "openDatabase": false,
+            "opr": false,
+            "originPrivateFS": true,
+            "paymentRequest": true,
+            "periodicSync": true,
+            "pointerEvent": true,
+            "popover": true,
+            "presentation": true,
+            "privateAttribution": false,
+            "protectedAudience": false,
+            "publicKeyCredential": true,
+            "pushManager": true,
+            "reportingObserver": true,
+            "runAdAuction": false,
+            "safariPushNotification": false,
+            "sanitizer": true,
+            "scheduler": true,
+            "scheduling": true,
+            "serial": true,
+            "serviceWorker": true,
+            "sessionStorage": true,
+            "share": false,
+            "sharedStorage": false,
+            "sharedWorker": true,
+            "speechRecognition": true,
+            "speechSynthesis": true,
+            "storageAccess": true,
+            "storageBuckets": true,
+            "summarizer": true,
+            "sync": true,
+            "topics": false,
+            "touchEvent": true,
+            "translator": true,
+            "trustedTypes": true,
+            "usb": true,
+            "videoDecoder": true,
+            "viewTransition": true,
+            "virtualKeyboard": true,
+            "wakeLock": true,
+            "webSocket": true,
+            "webSocketStream": true,
+            "webTransport": true,
+            "webWorker": true,
+            "webkitMessageHandlers": false,
+            "webnn": false,
+            "webrtc": true,
+            "windowControlsOverlay": true,
+            "xr": true,
+            "yandex": false
+          },
+          "hash": "df8ef25b9b8f6dfc"
+        }
+      },
+      "fontPreferences": {
+        "duration_ms": 41.5,
+        "hash": "713cdebc9a2b774b",
+        "value": {
+          "apple": 141.734375,
+          "default": 141.734375,
+          "min": 9.34375,
+          "mono": 153.53125,
+          "sans": 135.015625,
+          "serif": 139.984375,
+          "system": 141.734375
+        }
+      },
+      "fonts": {
+        "duration_ms": 108.8,
+        "hash": "d24d4a56496bf782",
+        "value": {
+          "available": [
+            "Arial",
+            "Calibri",
+            "Cambria",
+            "Courier",
+            "Courier New",
+            "DejaVu Sans",
+            "DejaVu Sans Mono",
+            "DejaVu Serif",
+            "Helvetica",
+            "Helvetica Neue",
+            "Liberation Mono",
+            "Liberation Sans",
+            "Liberation Serif",
+            "MS Gothic",
+            "Noto Color Emoji",
+            "Segoe UI",
+            "Times",
+            "Times New Roman"
+          ],
+          "count": 18,
+          "hash": "18421657ed9d818d",
+          "tested": 115
+        }
+      },
+      "gamepads": {
+        "duration_ms": 27.1,
+        "hash": "8d8b37d81e1b5c3d",
+        "value": []
+      },
+      "imageFormats": {
+        "duration_ms": 89.6,
+        "hash": "e37dec033116fe43",
+        "value": {
+          "avif": true,
+          "jxl": false,
+          "webp": true
+        }
+      },
+      "intl": {
+        "duration_ms": 270.9,
+        "hash": "b6aa255569743b23",
+        "value": {
+          "calendar": "gregory",
+          "collator": "en-US",
+          "currency": "€1,234.50",
+          "dateString": "Wed Jan 15 2020 12:34:56 GMT+0000 (Coordinated Universal Time)",
+          "displayNames": "United States",
+          "hourCycle": "h12",
+          "listFormat": "a, b, and c",
+          "locale": "en-US",
+          "localeNumber": "1,234,567.891",
+          "localeString": "1/15/2020, 12:34:56 PM",
+          "numberFormat": "en-US",
+          "numberingSystem": "latn",
+          "offsets": [
+            0,
+            0
+          ],
+          "pluralRules": "en-US",
+          "relativeTime": "1 day ago",
+          "supportedValues": {
+            "calendar": 18,
+            "collation": 10,
+            "currency": 159,
+            "numberingSystem": 78,
+            "timeZone": 418,
+            "unit": 45
+          },
+          "timezone": "UTC"
+        }
+      },
+      "jsEngine": {
+        "duration_ms": 38.1,
+        "hash": "d97b446cc5334aae",
+        "value": {
+          "architecture": 255,
+          "captureStackTrace": "function",
+          "errorMessages": {
+            "bigint": "The number 1.5 cannot be converted to a BigInt because it is not an integer",
+            "call": "(void 0) is not a function",
+            "json": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+            "stack": "Maximum call stack size exceeded",
+            "undef": "Cannot read properties of null (reading 'x')"
+          },
+          "evalLength": 33,
+          "exp": "1.23456000000000003070e+2",
+          "features": {
+            "arrayAt": "function",
+            "atomics": "object",
+            "bigint": "function",
+            "errorIsError": "function",
+            "finalizationRegistry": "function",
+            "findLast": "function",
+            "float16": "function",
+            "groupBy": "function",
+            "iteratorHelpers": "function",
+            "mathSumPrecise": "function",
+            "promiseWithResolvers": "function",
+            "regexpEscape": "function",
+            "regexpV": true,
+            "setUnion": "function",
+            "sharedArrayBuffer": "undefined",
+            "structuredClone": "function",
+            "temporal": "object",
+            "toSorted": "function",
+            "uint8Base64": "function",
+            "weakRef": "function"
+          },
+          "floatPrecision": "0.30000000000000004",
+          "stackFormat": [
+            "Error: x",
+            "    at URL"
+          ],
+          "stackTraceLimit": 10,
+          "toFixed": "1.00",
+          "wasm": {
+            "bulkMemory": true,
+            "simd": true,
+            "supported": true
+          }
+        }
+      },
+      "keyboard": {
+        "duration_ms": 51,
+        "hash": "0e20946d1591f29d",
+        "value": {
+          "keys": {
+            "Backquote": "`",
+            "BracketLeft": "[",
+            "BracketRight": "]",
+            "Digit2": "2",
+            "Equal": "=",
+            "IntlBackslash": "<",
+            "KeyA": "a",
+            "KeyQ": "q",
+            "KeyW": "w",
+            "KeyY": "y",
+            "KeyZ": "z",
+            "Minus": "-",
+            "Quote": "'",
+            "Semicolon": ";",
+            "Slash": "/"
+          },
+          "size": 49,
+          "supported": true
+        }
+      },
+      "latency": {
+        "duration_ms": 141.1,
+        "hash": "67f464f55898df8a",
+        "value": {
+          "clockSkewMs": -0.5,
+          "connections": 1,
+          "jitterMs": 8.9,
+          "medianRttMs": 3,
+          "minRttMs": 2.1,
+          "protocols": [
+            "h3",
+            "resource:h3"
+          ],
+          "samplesMs": [
+            117.8,
+            11,
+            3.9,
+            3,
+            3,
+            2.1
+          ]
+        }
+      },
+      "math": {
+        "duration_ms": 38.3,
+        "hash": "a15d13a867c8914b",
+        "value": {
+          "acos": 1.4473588658278522,
+          "acosh": 709.889355822726,
+          "asin": 0.12343746096704435,
+          "asinh": 0.881373587019543,
+          "atan": 0.4636476090008061,
+          "atanh": 0.5493061443340549,
+          "cbrt": 1.4645918875615231,
+          "cos": -0.8390715290095377,
+          "cosh": 1.5430806348152437,
+          "exp": 2.718281828459045,
+          "expm1": 1.7182818284590453,
+          "fround": 5.55555534362793,
+          "hypot": 3.7416575471306865,
+          "log10": 0.8450980400142568,
+          "log1p": 2.3978952727983707,
+          "pow": 1.9275814160560206e-50,
+          "sin": 0.8178819121159085,
+          "sinPi": 1.2246467991473532e-16,
+          "sinh": 1.1752011936438014,
+          "tan": -1.4214488238747245,
+          "tanh": 0.7615941559557649
+        }
+      },
+      "mediaDevices": {
+        "duration_ms": 113.9,
+        "hash": "c51ffd8f81f863d6",
+        "value": {
+          "deviceIdsHash": "488bdcb81aee8d83",
+          "groupCount": 0,
+          "kinds": {},
+          "labelsVisible": false,
+          "supported": true,
+          "supportedConstraints": 36
+        }
+      },
+      "mediaQueries": {
+        "duration_ms": 250.5,
+        "hash": "93cbe59d6f442237",
+        "value": {
+          "anyHover": "none",
+          "anyPointer": "none",
+          "colorGamut": "srgb",
+          "colorScheme": "light",
+          "contrast": "no-preference",
+          "displayMode": "browser",
+          "dynamicRange": "standard",
+          "forcedColors": "none",
+          "hover": "none",
+          "invertedColors": null,
+          "monochrome": 0,
+          "pointer": "none",
+          "reducedData": null,
+          "reducedMotion": "no-preference",
+          "reducedTransparency": "no-preference",
+          "scripting": "enabled",
+          "update": "fast",
+          "videoDynamicRange": null
+        }
+      },
+      "navigationTiming": {
+        "duration_ms": 2,
+        "hash": "1af1b84206ff4a33",
+        "value": {
+          "connectMs": 0,
+          "decodedBodySize": 2884,
+          "deliveryType": "",
+          "dnsMs": 0,
+          "domContentLoadedMs": 0,
+          "domInteractiveMs": 106.3,
+          "downloadMs": 0.6,
+          "encodedBodySize": 2884,
+          "firstInterimResponseStart": 0,
+          "loadMs": 0,
+          "nextHopProtocol": "h3",
+          "paint": [],
+          "redirectCount": 1,
+          "renderBlockingStatus": "non-blocking",
+          "requestToFirstByteMs": 1,
+          "serverTiming": [
+            {
+              "description": "",
+              "duration": 0.046,
+              "name": "app"
+            }
+          ],
+          "tlsMs": 0,
+          "transferSize": 3184,
+          "type": "navigate",
+          "workerStart": 0
+        }
+      },
+      "navigator": {
+        "duration_ms": 274.5,
+        "hash": "bda592ea25f6710f",
+        "value": {
+          "appCodeName": "Mozilla",
+          "appName": "Netscape",
+          "appVersion": "5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "cookieEnabled": true,
+          "deviceMemory": 16,
+          "doNotTrack": null,
+          "hardwareConcurrency": 4,
+          "javaEnabled": false,
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "maxTouchPoints": 0,
+          "mimeTypes": [
+            "application/pdf",
+            "text/pdf"
+          ],
+          "onLine": true,
+          "pdfViewerEnabled": true,
+          "platform": "Linux x86_64",
+          "plugins": [
+            {
+              "description": "Portable Document Format",
+              "filename": "internal-pdf-viewer",
+              "mimeTypes": [
+                "application/pdf",
+                "text/pdf"
+              ],
+              "name": "PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "filename": "internal-pdf-viewer",
+              "mimeTypes": [
+                "application/pdf",
+                "text/pdf"
+              ],
+              "name": "Chrome PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "filename": "internal-pdf-viewer",
+              "mimeTypes": [
+                "application/pdf",
+                "text/pdf"
+              ],
+              "name": "Chromium PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "filename": "internal-pdf-viewer",
+              "mimeTypes": [
+                "application/pdf",
+                "text/pdf"
+              ],
+              "name": "Microsoft Edge PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "filename": "internal-pdf-viewer",
+              "mimeTypes": [
+                "application/pdf",
+                "text/pdf"
+              ],
+              "name": "WebKit built-in PDF"
+            }
+          ],
+          "product": "Gecko",
+          "productSub": "20030107",
+          "prototypeKeys": 67,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "vendor": "Google Inc.",
+          "vendorSub": "",
+          "webdriver": false
+        }
+      },
+      "permissions": {
+        "duration_ms": 118.4,
+        "hash": "8f84bfc27126f1e8",
+        "value": {
+          "Notification.permission": "default",
+          "accelerometer": "granted",
+          "ambient-light-sensor": "unsupported",
+          "background-fetch": "granted",
+          "background-sync": "granted",
+          "bluetooth": "unsupported",
+          "camera": "prompt",
+          "captured-surface-control": "prompt",
+          "clipboard-read": "prompt",
+          "clipboard-write": "granted",
+          "display-capture": "prompt",
+          "geolocation": "prompt",
+          "gyroscope": "granted",
+          "keyboard-lock": "prompt",
+          "local-fonts": "prompt",
+          "local-network-access": "prompt",
+          "magnetometer": "granted",
+          "microphone": "prompt",
+          "midi": "prompt",
+          "nfc": "unsupported",
+          "notifications": "prompt",
+          "payment-handler": "granted",
+          "periodic-background-sync": "denied",
+          "persistent-storage": "prompt",
+          "pointer-lock": "granted",
+          "push": "prompt",
+          "screen-wake-lock": "granted",
+          "speaker-selection": "unsupported",
+          "storage-access": "granted",
+          "top-level-storage-access": "unsupported",
+          "window-management": "prompt",
+          "xr-spatial-tracking": "unsupported"
+        }
+      },
+      "privateClickMeasurement": {
+        "duration_ms": 4.2,
+        "hash": "cb05567957d5640c",
+        "value": {
+          "attributionSourceId": null,
+          "attributionSrc": false
+        }
+      },
+      "privateMode": {
+        "duration_ms": 88.6,
+        "hash": "271c8bb0de554ec3",
+        "value": {
+          "likely": false,
+          "signals": []
+        }
+      },
+      "resistance": {
+        "duration_ms": 2.8,
+        "hash": "b2217d3fb9a44224",
+        "value": {
+          "detected": [],
+          "timerResolutionMs": 0.1
+        }
+      },
+      "screen": {
+        "duration_ms": 273.9,
+        "hash": "613c4a1c4ba23fc0",
+        "value": {
+          "availHeight": 600,
+          "availLeft": 0,
+          "availTop": 0,
+          "availWidth": 800,
+          "colorDepth": 24,
+          "devicePixelRatio": 1,
+          "frame": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "height": 600,
+          "isExtended": false,
+          "pixelDepth": 24,
+          "width": 800
+        }
+      },
+      "serviceWorker": {
+        "duration_ms": 105.7,
+        "hash": "f3f2badc2410c6a5",
+        "value": {
+          "deviceMemory": 16,
+          "hardwareConcurrency": 4,
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "platform": "Linux x86_64",
+          "supported": true,
+          "timezone": "UTC",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        }
+      },
+      "sharedWorker": {
+        "duration_ms": 143.5,
+        "hash": "f3f2badc2410c6a5",
+        "value": {
+          "deviceMemory": 16,
+          "hardwareConcurrency": 4,
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "platform": "Linux x86_64",
+          "supported": true,
+          "timezone": "UTC",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        }
+      },
+      "speech": {
+        "duration_ms": 51.5,
+        "hash": "5a7e7f5daf50b532",
+        "value": {
+          "count": 0,
+          "hash": "488bdcb81aee8d83",
+          "voices": []
+        }
+      },
+      "storage": {
+        "duration_ms": 163.3,
+        "hash": "5759bc409356cce2",
+        "value": {
+          "cookieWorks": true,
+          "estimate": {
+            "quota": 10737418240,
+            "usage": 0
+          },
+          "indexedDBWorks": true,
+          "localStorageWorks": true,
+          "persisted": false
+        }
+      },
+      "svg": {
+        "duration_ms": 229.4,
+        "hash": "f5a6afb95f00f2e9",
+        "value": {
+          "bbox": [
+            289.46875,
+            19
+          ],
+          "textLength": 289.1875
+        }
+      },
+      "systemColors": {
+        "duration_ms": 4.1,
+        "hash": "3f7731d4e08970b4",
+        "value": {
+          "colors": {
+            "-webkit-focus-ring-color": null,
+            "AccentColor": "rgb(0, 117, 255)",
+            "AccentColorText": "rgb(255, 255, 255)",
+            "ActiveBorder": "rgb(0, 0, 0)",
+            "ActiveCaption": "rgb(255, 255, 255)",
+            "ActiveText": "rgb(255, 0, 0)",
+            "AppWorkspace": "rgb(255, 255, 255)",
+            "Background": "rgb(255, 255, 255)",
+            "ButtonBorder": "rgb(0, 0, 0)",
+            "ButtonFace": "rgb(239, 239, 239)",
+            "ButtonHighlight": "rgb(239, 239, 239)",
+            "ButtonShadow": "rgb(239, 239, 239)",
+            "ButtonText": "rgb(0, 0, 0)",
+            "Canvas": "rgb(255, 255, 255)",
+            "CanvasText": "rgb(0, 0, 0)",
+            "CaptionText": "rgb(0, 0, 0)",
+            "Field": "rgb(255, 255, 255)",
+            "FieldText": "rgb(0, 0, 0)",
+            "GrayText": "rgb(128, 128, 128)",
+            "Highlight": "rgba(0, 65, 198, 0.8)",
+            "HighlightText": "rgb(255, 255, 255)",
+            "InactiveBorder": "rgb(0, 0, 0)",
+            "InactiveCaption": "rgb(255, 255, 255)",
+            "InactiveCaptionText": "rgb(128, 128, 128)",
+            "InfoBackground": "rgb(255, 255, 255)",
+            "InfoText": "rgb(0, 0, 0)",
+            "LinkText": "rgb(0, 0, 238)",
+            "Mark": "rgb(255, 255, 0)",
+            "MarkText": "rgb(0, 0, 0)",
+            "Menu": "rgb(255, 255, 255)",
+            "MenuText": "rgb(0, 0, 0)",
+            "Scrollbar": "rgb(255, 255, 255)",
+            "SelectedItem": "rgb(25, 103, 210)",
+            "SelectedItemText": "rgb(255, 255, 255)",
+            "ThreeDDarkShadow": "rgb(0, 0, 0)",
+            "ThreeDFace": "rgb(239, 239, 239)",
+            "ThreeDHighlight": "rgb(0, 0, 0)",
+            "ThreeDLightShadow": "rgb(0, 0, 0)",
+            "ThreeDShadow": "rgb(0, 0, 0)",
+            "VisitedText": "rgb(85, 26, 139)",
+            "Window": "rgb(255, 255, 255)",
+            "WindowFrame": "rgb(0, 0, 0)",
+            "WindowText": "rgb(0, 0, 0)"
+          },
+          "fonts": {
+            "caption": "16px Arial",
+            "icon": "16px Arial",
+            "menu": "16px Arial",
+            "message-box": "16px Arial",
+            "small-caption": "16px Arial",
+            "status-bar": "16px Arial",
+            "system-ui": "12px system-ui"
+          },
+          "hash": "603cefb971ff63e3"
+        }
+      },
+      "tampering": {
+        "duration_ms": 9.1,
+        "hash": "9079ee53a4dd2555",
+        "value": {
+          "iframe": {
+            "hardwareConcurrency": 4,
+            "languages": [
+              "en-US"
+            ],
+            "platform": "Linux x86_64",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "webdriver": false
+          },
+          "lies": []
+        }
+      },
+      "timing": {
+        "duration_ms": 23.6,
+        "hash": "279e1e8aa88d7f93",
+        "value": {
+          "dateNowVsTimeOrigin": -0.60009765625,
+          "maxCallStack": 17019,
+          "memory": {
+            "jsHeapSizeLimit": 4395630592
+          },
+          "navigationType": "navigate",
+          "nextHopProtocol": "h3",
+          "performanceNowResolution": 0.09999999997671694,
+          "timeOrigin": 1793749980981.1
+        }
+      },
+      "touch": {
+        "duration_ms": 30.2,
+        "hash": "a1568bd741077cb4",
+        "value": {
+          "maxTouchPoints": 0,
+          "ontouchstart": false,
+          "touchEvent": false
+        }
+      },
+      "userAgentData": {
+        "duration_ms": 292,
+        "hash": "1f19a34f35cde17c",
+        "value": {
+          "brands": [
+            {
+              "brand": "Chromium",
+              "version": "153"
+            },
+            {
+              "brand": "Not_A Brand",
+              "version": "8"
+            }
+          ],
+          "highEntropy": {
+            "architecture": "x86",
+            "bitness": "64",
+            "brands": [
+              {
+                "brand": "Chromium",
+                "version": "153"
+              },
+              {
+                "brand": "Not_A Brand",
+                "version": "8"
+              }
+            ],
+            "formFactors": [
+              "Desktop"
+            ],
+            "fullVersionList": [
+              {
+                "brand": "Chromium",
+                "version": "153.0.8010.12"
+              },
+              {
+                "brand": "Not_A Brand",
+                "version": "8.0.0.0"
+              }
+            ],
+            "mobile": false,
+            "model": "",
+            "platform": "Linux",
+            "platformVersion": "",
+            "uaFullVersion": "153.0.8010.12",
+            "wow64": false
+          },
+          "mobile": false,
+          "platform": "Linux"
+        }
+      },
+      "vendorFlavors": {
+        "duration_ms": 4.3,
+        "hash": "69a9502512c20e8f",
+        "value": [
+          "chrome"
+        ]
+      },
+      "webgl": {
+        "duration_ms": 224.8,
+        "hash": "987c41871a3bb0ec",
+        "value": {
+          "contextAttributes": {
+            "alpha": true,
+            "antialias": true,
+            "depth": true,
+            "desynchronized": false,
+            "failIfMajorPerformanceCaveat": false,
+            "powerPreference": "default",
+            "premultipliedAlpha": true,
+            "preserveDrawingBuffer": false,
+            "stencil": false,
+            "xrCompatible": false
+          },
+          "extensions": [
+            "ANGLE_instanced_arrays",
+            "EXT_blend_minmax",
+            "EXT_clip_control",
+            "EXT_color_buffer_half_float",
+            "EXT_depth_clamp",
+            "EXT_float_blend",
+            "EXT_frag_depth",
+            "EXT_polygon_offset_clamp",
+            "EXT_shader_texture_lod",
+            "EXT_texture_compression_bptc",
+            "EXT_texture_compression_rgtc",
+            "EXT_texture_filter_anisotropic",
+            "EXT_texture_mirror_clamp_to_edge",
+            "EXT_sRGB",
+            "OES_element_index_uint",
+            "OES_fbo_render_mipmap",
+            "OES_standard_derivatives",
+            "OES_texture_float",
+            "OES_texture_float_linear",
+            "OES_texture_half_float",
+            "OES_texture_half_float_linear",
+            "OES_vertex_array_object",
+            "WEBGL_color_buffer_float",
+            "WEBGL_compressed_texture_astc",
+            "WEBGL_compressed_texture_etc",
+            "WEBGL_compressed_texture_etc1",
+            "WEBGL_compressed_texture_s3tc",
+            "WEBGL_compressed_texture_s3tc_srgb",
+            "WEBGL_debug_renderer_info",
+            "WEBGL_debug_shaders",
+            "WEBGL_depth_texture",
+            "WEBGL_draw_buffers",
+            "WEBGL_lose_context",
+            "WEBGL_multi_draw",
+            "WEBGL_polygon_mode"
+          ],
+          "imageHash": "4ee841b4a8e0c02c",
+          "maxAnisotropy": 16,
+          "params": {
+            "ALIASED_LINE_WIDTH_RANGE": [
+              1,
+              1
+            ],
+            "ALIASED_POINT_SIZE_RANGE": [
+              1,
+              1023
+            ],
+            "ALPHA_BITS": 8,
+            "BLUE_BITS": 8,
+            "DEPTH_BITS": 24,
+            "GREEN_BITS": 8,
+            "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 64,
+            "MAX_CUBE_MAP_TEXTURE_SIZE": 16384,
+            "MAX_FRAGMENT_UNIFORM_VECTORS": 4096,
+            "MAX_RENDERBUFFER_SIZE": 8192,
+            "MAX_TEXTURE_IMAGE_UNITS": 32,
+            "MAX_TEXTURE_SIZE": 8192,
+            "MAX_VARYING_VECTORS": 31,
+            "MAX_VERTEX_ATTRIBS": 16,
+            "MAX_VERTEX_TEXTURE_IMAGE_UNITS": 32,
+            "MAX_VERTEX_UNIFORM_VECTORS": 4096,
+            "MAX_VIEWPORT_DIMS": [
+              8192,
+              8192
+            ],
+            "RED_BITS": 8,
+            "RENDERER": "WebKit WebGL",
+            "SAMPLES": 4,
+            "SAMPLE_BUFFERS": 1,
+            "SHADING_LANGUAGE_VERSION": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "STENCIL_BITS": 0,
+            "SUBPIXEL_BITS": 4,
+            "VENDOR": "WebKit",
+            "VERSION": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
+          },
+          "shaderPrecision": {
+            "FRAGMENT_SHADER.HIGH_FLOAT": [
+              127,
+              127,
+              23
+            ],
+            "FRAGMENT_SHADER.HIGH_INT": [
+              31,
+              30,
+              0
+            ],
+            "FRAGMENT_SHADER.LOW_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "FRAGMENT_SHADER.LOW_INT": [
+              15,
+              14,
+              0
+            ],
+            "FRAGMENT_SHADER.MEDIUM_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "FRAGMENT_SHADER.MEDIUM_INT": [
+              15,
+              14,
+              0
+            ],
+            "VERTEX_SHADER.HIGH_FLOAT": [
+              127,
+              127,
+              23
+            ],
+            "VERTEX_SHADER.HIGH_INT": [
+              31,
+              30,
+              0
+            ],
+            "VERTEX_SHADER.LOW_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "VERTEX_SHADER.LOW_INT": [
+              15,
+              14,
+              0
+            ],
+            "VERTEX_SHADER.MEDIUM_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "VERTEX_SHADER.MEDIUM_INT": [
+              15,
+              14,
+              0
+            ]
+          },
+          "supported": true,
+          "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "unmaskedVendor": "Google Inc. (Google)"
+        }
+      },
+      "webgl2": {
+        "duration_ms": 188.2,
+        "hash": "a1ea7cad0bb1acac",
+        "value": {
+          "contextAttributes": {
+            "alpha": true,
+            "antialias": true,
+            "depth": true,
+            "desynchronized": false,
+            "failIfMajorPerformanceCaveat": false,
+            "powerPreference": "default",
+            "premultipliedAlpha": true,
+            "preserveDrawingBuffer": false,
+            "stencil": false,
+            "xrCompatible": false
+          },
+          "extensions": [
+            "EXT_clip_control",
+            "EXT_color_buffer_float",
+            "EXT_color_buffer_half_float",
+            "EXT_conservative_depth",
+            "EXT_depth_clamp",
+            "EXT_float_blend",
+            "EXT_polygon_offset_clamp",
+            "EXT_texture_compression_bptc",
+            "EXT_texture_compression_rgtc",
+            "EXT_texture_filter_anisotropic",
+            "EXT_texture_mirror_clamp_to_edge",
+            "NV_shader_noperspective_interpolation",
+            "OES_draw_buffers_indexed",
+            "OES_sample_variables",
+            "OES_shader_multisample_interpolation",
+            "OES_texture_float_linear",
+            "OVR_multiview2",
+            "WEBGL_clip_cull_distance",
+            "WEBGL_compressed_texture_astc",
+            "WEBGL_compressed_texture_etc",
+            "WEBGL_compressed_texture_etc1",
+            "WEBGL_compressed_texture_s3tc",
+            "WEBGL_compressed_texture_s3tc_srgb",
+            "WEBGL_debug_renderer_info",
+            "WEBGL_debug_shaders",
+            "WEBGL_lose_context",
+            "WEBGL_multi_draw",
+            "WEBGL_polygon_mode",
+            "WEBGL_stencil_texturing"
+          ],
+          "imageHash": "4ee841b4a8e0c02c",
+          "maxAnisotropy": 16,
+          "params": {
+            "ALIASED_LINE_WIDTH_RANGE": [
+              1,
+              1
+            ],
+            "ALIASED_POINT_SIZE_RANGE": [
+              1,
+              1023
+            ],
+            "ALPHA_BITS": 8,
+            "BLUE_BITS": 8,
+            "DEPTH_BITS": 24,
+            "GREEN_BITS": 8,
+            "MAX_3D_TEXTURE_SIZE": 2048,
+            "MAX_ARRAY_TEXTURE_LAYERS": 2048,
+            "MAX_COLOR_ATTACHMENTS": 8,
+            "MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS": 245760,
+            "MAX_COMBINED_TEXTURE_IMAGE_UNITS": 64,
+            "MAX_COMBINED_UNIFORM_BLOCKS": 60,
+            "MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS": 245760,
+            "MAX_CUBE_MAP_TEXTURE_SIZE": 16384,
+            "MAX_DRAW_BUFFERS": 8,
+            "MAX_ELEMENTS_INDICES": 2147483647,
+            "MAX_ELEMENTS_VERTICES": 2147483647,
+            "MAX_ELEMENT_INDEX": 1073741823,
+            "MAX_FRAGMENT_INPUT_COMPONENTS": 128,
+            "MAX_FRAGMENT_UNIFORM_BLOCKS": 14,
+            "MAX_FRAGMENT_UNIFORM_COMPONENTS": 16384,
+            "MAX_FRAGMENT_UNIFORM_VECTORS": 4096,
+            "MAX_PROGRAM_TEXEL_OFFSET": 7,
+            "MAX_RENDERBUFFER_SIZE": 8192,
+            "MAX_SAMPLES": 4,
+            "MAX_SERVER_WAIT_TIMEOUT": 0,
+            "MAX_TEXTURE_IMAGE_UNITS": 32,
+            "MAX_TEXTURE_LOD_BIAS": 15,
+            "MAX_TEXTURE_SIZE": 8192,
+            "MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS": 128,
+            "MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS": 4,
+            "MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS": 4,
+            "MAX_UNIFORM_BLOCK_SIZE": 65536,
+            "MAX_UNIFORM_BUFFER_BINDINGS": 72,
+            "MAX_VARYING_COMPONENTS": 124,
+            "MAX_VARYING_VECTORS": 31,
+            "MAX_VERTEX_ATTRIBS": 16,
+            "MAX_VERTEX_OUTPUT_COMPONENTS": 128,
+            "MAX_VERTEX_TEXTURE_IMAGE_UNITS": 32,
+            "MAX_VERTEX_UNIFORM_BLOCKS": 14,
+            "MAX_VERTEX_UNIFORM_COMPONENTS": 16384,
+            "MAX_VERTEX_UNIFORM_VECTORS": 4096,
+            "MAX_VIEWPORT_DIMS": [
+              8192,
+              8192
+            ],
+            "MIN_PROGRAM_TEXEL_OFFSET": -8,
+            "RED_BITS": 8,
+            "RENDERER": "WebKit WebGL",
+            "SAMPLES": 4,
+            "SAMPLE_BUFFERS": 1,
+            "SHADING_LANGUAGE_VERSION": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+            "STENCIL_BITS": 0,
+            "SUBPIXEL_BITS": 4,
+            "UNIFORM_BUFFER_OFFSET_ALIGNMENT": 256,
+            "VENDOR": "WebKit",
+            "VERSION": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          },
+          "shaderPrecision": {
+            "FRAGMENT_SHADER.HIGH_FLOAT": [
+              127,
+              127,
+              23
+            ],
+            "FRAGMENT_SHADER.HIGH_INT": [
+              31,
+              30,
+              0
+            ],
+            "FRAGMENT_SHADER.LOW_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "FRAGMENT_SHADER.LOW_INT": [
+              15,
+              14,
+              0
+            ],
+            "FRAGMENT_SHADER.MEDIUM_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "FRAGMENT_SHADER.MEDIUM_INT": [
+              15,
+              14,
+              0
+            ],
+            "VERTEX_SHADER.HIGH_FLOAT": [
+              127,
+              127,
+              23
+            ],
+            "VERTEX_SHADER.HIGH_INT": [
+              31,
+              30,
+              0
+            ],
+            "VERTEX_SHADER.LOW_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "VERTEX_SHADER.LOW_INT": [
+              15,
+              14,
+              0
+            ],
+            "VERTEX_SHADER.MEDIUM_FLOAT": [
+              15,
+              15,
+              10
+            ],
+            "VERTEX_SHADER.MEDIUM_INT": [
+              15,
+              14,
+              0
+            ]
+          },
+          "supported": true,
+          "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "unmaskedVendor": "Google Inc. (Google)"
+        }
+      },
+      "webgpu": {
+        "duration_ms": 245.6,
+        "hash": "6130a1a35b9406d9",
+        "value": {
+          "adapter": null,
+          "supported": true
+        }
+      },
+      "webrtc": {
+        "duration_ms": 3119.7,
+        "hash": "bdc3b2b42094adbd",
+        "value": {
+          "audioCodecs": [
+            "audio/opus/48000/2;minptime=10;useinbandfec=1",
+            "audio/red/48000/2",
+            "audio/G722/8000/1",
+            "audio/PCMU/8000/1",
+            "audio/PCMA/8000/1",
+            "audio/CN/8000/1",
+            "audio/telephone-event/48000/1",
+            "audio/telephone-event/8000/1"
+          ],
+          "audioExtensions": [
+            "urn:ietf:params:rtp-hdrext:ssrc-audio-level",
+            "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+            "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+            "urn:ietf:params:rtp-hdrext:sdes:mid"
+          ],
+          "candidates": [
+            {
+              "address": "4eb8ea01-e996-48bf-b918-b1e1869b5773.local",
+              "port": "53243",
+              "protocol": "udp",
+              "type": "host"
+            }
+          ],
+          "codecsHash": "eebeaa2a95766df2",
+          "localAddresses": [
+            "4eb8ea01-e996-48bf-b918-b1e1869b5773.local"
+          ],
+          "publicIPs": [],
+          "sdpHash": "9457f3e4891e8d73",
+          "supported": true,
+          "videoCodecs": [
+            "video/VP8",
+            "video/rtx",
+            "video/H264;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f",
+            "video/H264;level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f",
+            "video/H264;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
+            "video/H264;level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f",
+            "video/H264;level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f",
+            "video/H264;level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f",
+            "video/AV1;level-idx=5;profile=0;tier=0",
+            "video/VP9;profile-id=0",
+            "video/VP9;profile-id=2",
+            "video/red",
+            "video/ulpfec"
+          ],
+          "videoExtensions": [
+            "urn:ietf:params:rtp-hdrext:toffset",
+            "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+            "urn:3gpp:video-orientation",
+            "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+            "http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
+            "http://www.webrtc.org/experiments/rtp-hdrext/video-content-type",
+            "http://www.webrtc.org/experiments/rtp-hdrext/video-timing",
+            "http://www.webrtc.org/experiments/rtp-hdrext/color-space",
+            "urn:ietf:params:rtp-hdrext:sdes:mid",
+            "urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id",
+            "urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id"
+          ]
+        }
+      },
+      "window": {
+        "duration_ms": 273.8,
+        "hash": "157c0924e9ed4412",
+        "value": {
+          "chromeKeys": [
+            "loadTimes",
+            "csi",
+            "app"
+          ],
+          "crossOriginIsolated": false,
+          "customGlobals": [
+            "RTCRtpScriptTransform",
+            "RemotePlayback",
+            "RestrictionTarget",
+            "Sanitizer",
+            "SharedWorker",
+            "SnapEvent",
+            "SpeechGrammar",
+            "SpeechGrammarList",
+            "SpeechRecognition",
+            "SpeechRecognitionErrorEvent",
+            "SpeechRecognitionEvent",
+            "SpeechSynthesis",
+            "SpeechSynthesisErrorEvent",
+            "SpeechSynthesisEvent",
+            "SpeechSynthesisUtterance",
+            "SpeechSynthesisVoice",
+            "TimelineTrigger",
+            "TimelineTriggerRange",
+            "TimelineTriggerRangeList",
+            "Viewport",
+            "WebSocketError",
+            "WebSocketStream",
+            "FingerprintJS",
+            "ThumbmarkJS",
+            "FPCollect"
+          ],
+          "globalsCount": 1230,
+          "historyLength": 1,
+          "inIframe": false,
+          "innerHeight": 437,
+          "innerWidth": 780,
+          "isSecureContext": true,
+          "opener": false,
+          "orientation": {
+            "angle": 0,
+            "type": "landscape-primary"
+          },
+          "outerHeight": 580,
+          "outerWidth": 780,
+          "screenX": 10,
+          "screenY": 10,
+          "visualViewport": {
+            "h": 437,
+            "scale": 1,
+            "w": 780
+          }
+        }
+      },
+      "worker": {
+        "duration_ms": 155.7,
+        "hash": "02355c43a5f331bc",
+        "value": {
+          "deviceMemory": 16,
+          "hardwareConcurrency": 4,
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "offscreenCanvasHash": "c1bb48db",
+          "platform": "Linux x86_64",
+          "timezone": "UTC",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "userAgentData": {
+            "architecture": "x86",
+            "bitness": "64",
+            "brands": [
+              {
+                "brand": "Chromium",
+                "version": "153"
+              },
+              {
+                "brand": "Not_A Brand",
+                "version": "8"
+              }
+            ],
+            "mobile": false,
+            "platform": "Linux",
+            "platformVersion": ""
+          },
+          "webgl": [
+            "Google Inc. (Google)",
+            "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          ]
+        }
+      },
+      "xr": {
+        "duration_ms": 148.2,
+        "hash": "713bc394ab8dc5cb",
+        "value": {
+          "immersive-ar": false,
+          "immersive-vr": false,
+          "inline": true,
+          "supported": true
+        }
+      }
+    },
+    "duration_ms": 3517.6,
+    "version": "1.0.0"
+  },
+  "created_at": "2026-11-03T23:53:04.637816568Z",
+  "hashes": {
+    "browser": "20b24b8f44609e8572058626371fa289",
+    "browser_all": "7e6e7c1a3ebab34682c5fd2f84843709",
+    "combined": "981088c51dca8a7bad01dfc7108bd81c",
+    "ja3": "890de31d04d97c4a41d14ea63a988bea",
+    "ja3n": "983903d184d7fdfa3525037212f36868",
+    "ja4": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+    "ja4_o": "q13i0312h3_55b375c5d22e_3ad45d1fa588",
+    "ja4_quic": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+    "peetprint": "70fed7a0711b35508e95f63d5823a527",
+    "quic": "f6aad092ed039d2b",
+    "transport": "cf8f66051a98b27bffc88d3c2b703ad9"
+  },
+  "http": {
+    "client_hints": {
+      "device-memory": "16",
+      "downlink": "1.5",
+      "dpr": "1",
+      "ect": "4g",
+      "rtt": "100",
+      "sec-ch-device-memory": "16",
+      "sec-ch-dpr": "1",
+      "sec-ch-prefers-color-scheme": "light",
+      "sec-ch-prefers-reduced-motion": "no-preference",
+      "sec-ch-prefers-reduced-transparency": "no-preference",
+      "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+      "sec-ch-ua-arch": "\"x86\"",
+      "sec-ch-ua-bitness": "\"64\"",
+      "sec-ch-ua-form-factors": "\"Desktop\"",
+      "sec-ch-ua-full-version": "\"153.0.8010.12\"",
+      "sec-ch-ua-full-version-list": "\"Chromium\";v=\"153.0.8010.12\", \"Not_A Brand\";v=\"8.0.0.0\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-model": "\"\"",
+      "sec-ch-ua-platform": "\"Linux\"",
+      "sec-ch-ua-platform-version": "\"\"",
+      "sec-ch-ua-wow64": "?0",
+      "sec-ch-viewport-height": "437",
+      "sec-ch-viewport-width": "780",
+      "viewport-width": "780"
+    },
+    "header_bytes": 1135,
+    "header_count": 37,
+    "header_name_casing": "Canonical-Case",
+    "header_order": [
+      "Accept",
+      "Accept-Encoding",
+      "Accept-Language",
+      "Cache-Control",
+      "Content-Length",
+      "Content-Type",
+      "Device-Memory",
+      "Downlink",
+      "Dpr",
+      "Ect",
+      "Origin",
+      "Pragma",
+      "Priority",
+      "Rtt",
+      "Sec-Ch-Device-Memory",
+      "Sec-Ch-Dpr",
+      "Sec-Ch-Prefers-Color-Scheme",
+      "Sec-Ch-Prefers-Reduced-Motion",
+      "Sec-Ch-Prefers-Reduced-Transparency",
+      "Sec-Ch-Ua",
+      "Sec-Ch-Ua-Arch",
+      "Sec-Ch-Ua-Bitness",
+      "Sec-Ch-Ua-Form-Factors",
+      "Sec-Ch-Ua-Full-Version",
+      "Sec-Ch-Ua-Full-Version-List",
+      "Sec-Ch-Ua-Mobile",
+      "Sec-Ch-Ua-Model",
+      "Sec-Ch-Ua-Platform",
+      "Sec-Ch-Ua-Platform-Version",
+      "Sec-Ch-Ua-Wow64",
+      "Sec-Ch-Viewport-Height",
+      "Sec-Ch-Viewport-Width",
+      "Sec-Fetch-Dest",
+      "Sec-Fetch-Mode",
+      "Sec-Fetch-Site",
+      "User-Agent",
+      "Viewport-Width"
+    ],
+    "header_source": "go net/http (order NOT preserved)",
+    "headers": [
+      {
+        "name": "Accept",
+        "value": "*/*"
+      },
+      {
+        "name": "Accept-Encoding",
+        "value": "gzip, deflate, br, zstd"
+      },
+      {
+        "name": "Accept-Language",
+        "value": "en-US,en;q=0.9"
+      },
+      {
+        "name": "Cache-Control",
+        "value": "no-cache"
+      },
+      {
+        "name": "Content-Length",
+        "value": "74264"
+      },
+      {
+        "name": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "name": "Device-Memory",
+        "value": "16"
+      },
+      {
+        "name": "Downlink",
+        "value": "1.5"
+      },
+      {
+        "name": "Dpr",
+        "value": "1"
+      },
+      {
+        "name": "Ect",
+        "value": "4g"
+      },
+      {
+        "name": "Origin",
+        "value": "https://127.0.0.1:18443"
+      },
+      {
+        "name": "Pragma",
+        "value": "no-cache"
+      },
+      {
+        "name": "Priority",
+        "value": "u=1, i"
+      },
+      {
+        "name": "Rtt",
+        "value": "100"
+      },
+      {
+        "name": "Sec-Ch-Device-Memory",
+        "value": "16"
+      },
+      {
+        "name": "Sec-Ch-Dpr",
+        "value": "1"
+      },
+      {
+        "name": "Sec-Ch-Prefers-Color-Scheme",
+        "value": "light"
+      },
+      {
+        "name": "Sec-Ch-Prefers-Reduced-Motion",
+        "value": "no-preference"
+      },
+      {
+        "name": "Sec-Ch-Prefers-Reduced-Transparency",
+        "value": "no-preference"
+      },
+      {
+        "name": "Sec-Ch-Ua",
+        "value": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Arch",
+        "value": "\"x86\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Bitness",
+        "value": "\"64\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Form-Factors",
+        "value": "\"Desktop\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Full-Version",
+        "value": "\"153.0.8010.12\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Full-Version-List",
+        "value": "\"Chromium\";v=\"153.0.8010.12\", \"Not_A Brand\";v=\"8.0.0.0\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Mobile",
+        "value": "?0"
+      },
+      {
+        "name": "Sec-Ch-Ua-Model",
+        "value": "\"\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Platform",
+        "value": "\"Linux\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Platform-Version",
+        "value": "\"\""
+      },
+      {
+        "name": "Sec-Ch-Ua-Wow64",
+        "value": "?0"
+      },
+      {
+        "name": "Sec-Ch-Viewport-Height",
+        "value": "437"
+      },
+      {
+        "name": "Sec-Ch-Viewport-Width",
+        "value": "780"
+      },
+      {
+        "name": "Sec-Fetch-Dest",
+        "value": "empty"
+      },
+      {
+        "name": "Sec-Fetch-Mode",
+        "value": "cors"
+      },
+      {
+        "name": "Sec-Fetch-Site",
+        "value": "same-origin"
+      },
+      {
+        "name": "User-Agent",
+        "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      {
+        "name": "Viewport-Width",
+        "value": "780"
+      }
+    ],
+    "host": "127.0.0.1:18443",
+    "ja4h": "",
+    "ja4h_r": "unavailable: header order not observable on this transport",
+    "method": "POST",
+    "path": "/api/fingerprint?mode=store",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "version": "HTTP/3.0"
+  },
+  "http2": null,
+  "http3": {
+    "note": "HTTP/3 header order is not available (QPACK is decoded inside quic-go)",
+    "quic": {
+      "client_hello_complete_ms": 0.135,
+      "coalesced_packets": true,
+      "crypto_frames": 15,
+      "crypto_in_order": false,
+      "datagram_sizes": [
+        1250,
+        1250
+      ],
+      "dcid_length": 8,
+      "first_seen": "2026-11-03T23:53:01.048029133Z",
+      "frames_per_packet": [
+        [
+          "CRYPTO(1026+302)",
+          "PING",
+          "CRYPTO(1328+560)",
+          "PADDING(103)",
+          "PING",
+          "PADDING(43)",
+          "CRYPTO(20+60)",
+          "PING",
+          "PING",
+          "PADDING(20)",
+          "CRYPTO(0+20)",
+          "PADDING(85)",
+          "PING",
+          "PING"
+        ],
+        [
+          "CRYPTO(135+188)",
+          "PADDING(3)",
+          "PING",
+          "PADDING(66)",
+          "CRYPTO(355+7)",
+          "PADDING(146)",
+          "CRYPTO(1018+8)",
+          "CRYPTO(90+45)",
+          "CRYPTO(509+78)",
+          "CRYPTO(327+28)",
+          "CRYPTO(972+46)",
+          "PING",
+          "CRYPTO(362+147)",
+          "CRYPTO(587+385)",
+          "CRYPTO(323+4)",
+          "PADDING(3)",
+          "CRYPTO(80+10)"
+        ]
+      ],
+      "initial_packets": 2,
+      "packet_number_lengths": [
+        1,
+        2
+      ],
+      "packet_numbers": [
+        1,
+        2
+      ],
+      "quic_fingerprint": "v1|8|0|1-3-4-5-6-7-8-9-f-11-20-3127-3128|grease=1",
+      "scid_length": 0,
+      "tls": {
+        "client_hello": {
+          "alpn": [
+            "h3"
+          ],
+          "alps": [
+            "h3"
+          ],
+          "cert_compression": [
+            {
+              "hex": "0x0002",
+              "id": 2,
+              "name": "brotli"
+            }
+          ],
+          "cipher_suites": [
+            {
+              "hex": "0x1301",
+              "id": 4865,
+              "name": "TLS_AES_128_GCM_SHA256"
+            },
+            {
+              "hex": "0x1302",
+              "id": 4866,
+              "name": "TLS_AES_256_GCM_SHA384"
+            },
+            {
+              "hex": "0x1303",
+              "id": 4867,
+              "name": "TLS_CHACHA20_POLY1305_SHA256"
+            }
+          ],
+          "client_random": "9e043b2baa71bc55ffe449da62f87536a475ced5d5324dd1bbf731f8413d90f2",
+          "compression_methods": "AA==",
+          "early_data": false,
+          "encrypted_client_hello": false,
+          "extension_order": [
+            17613,
+            51,
+            57,
+            43,
+            45,
+            4832,
+            27,
+            13,
+            16,
+            51764,
+            10,
+            41
+          ],
+          "extension_order_names": [
+            "application_settings",
+            "key_share",
+            "quic_transport_parameters",
+            "supported_versions",
+            "psk_key_exchange_modes",
+            "unknown(0x12e0)",
+            "compress_certificate",
+            "signature_algorithms",
+            "application_layer_protocol_negotiation",
+            "unknown(0xca34)",
+            "supported_groups",
+            "pre_shared_key"
+          ],
+          "extensions": [
+            {
+              "data": [
+                "h3"
+              ],
+              "hex": "0003026833",
+              "id": 17613,
+              "length": 5,
+              "name": "application_settings"
+            },
+            {
+              "data": [
+                {
+                  "group": 4588,
+                  "key_length": 1216,
+                  "name": "X25519MLKEM768"
+                },
+                {
+                  "group": 29,
+                  "key_length": 32,
+                  "name": "x25519"
+                }
+              ],
+              "hex": "04e811ec04c078c2ba8d49ac3cdc0a74cb633f273b70c2802666646cd612092400cb2864df345df7e55ad3e8adc9607bc85a465d8aabcfe059b3737b02db1b328018635a051ee4351b8c35c5fc0b5cb11cee515c9cf0c1d3e62a213875397895eea42e8cd8ab4ee97635c4271880539139cd9eca34b3566907f3204600a24a2007b893ca5f7661b875a708d700f75c40ad3baba6c46c31f08e1648497bd9284ae9b5e4b39e6173b76e6c61d20b8fecd5c4acf602dfe462e3f008e5d98d12db1bcc7c7817aa76c54bb671e615be88aa6a032b12c18161f9b2be473208b40f3e364fba5b8f435c5a808b338ff71894670103330fecd3ab1a63487c42a60c7a207682102a00be3a9097f24814456994bcf7ac9bc9161b622caf80ce9ea6452aa6730761bbf7d844bfb82f56324dfd1159d40b2af31b8b6f8c921cd3527e665d5266ce7a056bece97fa2a871a534c18aa31b7c654e86cc104bb159fd54ae02fb5acf2c0ffd0ac06c7ca4827b3c718c6a7f1b59f5fc73dd56120dbabc9d034d0f377c390c479e0536396aa0e717b0699c2945d529a05b7c9d45c150c8c22f94b486431209901e2da4872dc7c84a0a1a9f606ae894a479832493f1babe9a121bb05b5d572fe2b282d75b45c3aa0261511fd12c2f258ac7640581162073f8874840c04f7cf56e5a396ea3f974c7a61b62766482d60e66f88da5cc40e7bca05641b8ef0270ab270a14d34777076206516fec2990b4e59f2cd41691acc73d7b81b1b44be29953d5b4b0b8a0914906693583bcd920a477b009bd50378d5b65aeb185bdcca29e255c0bc46176b6690c65886f0085d8c671daf1cefa8b6536182659b1b9b090a795941673b5588fa7911e2678abf9a3c7d53aae91cc1fdb3c0a6029634927ba71bd873a867a95bf3edb113cab22144436cab329871658415822d783bd06379c95f856d22913fac66798fc1919459d826687f72ccddb243e303ca64e414e6083b900e8a8623430ace8c4935cb699248882846d211516a201350ce6cba911667eab8c93ec358b59c588dcb5b2e84f1e1cc73f0324e615169353161fc0997421cef729753f2c1f279736fd4b59000a08146b86c54042df042199988e0fec5733284836f72815c6a3ff3b4fad4a2f26077febd10ed874be2f37a20f50369db55dc0f1a25b5c89074034f3534015e6977714272ec40fbf740c6c4021f06bca7c31c965635e830237650055c6f17be3b1747011c411c8c3f47914b1058a05830e3d314f744ba0c311cf89c9adb1680a272bac5ebc4b9339802e52be8d5b92ca80429531cb5b436890227ab3410197a63f4a3958a4087441fb2b7a47719cbc2c810aab46a03e0f0046a5d059e3c700b16550ad05109c247caa556014476f0fa483240bca429825a078a51ce326a63982df98554c30b7afd66794d86bc378196a5c0242",
+              "id": 51,
+              "length": 1258,
+              "name": "key_share"
+            },
+            {
+              "data": [
+                {
+                  "id": 1,
+                  "name": "max_idle_timeout",
+                  "value": 300000
+                },
+                {
+                  "id": 5,
+                  "name": "initial_max_stream_data_bidi_local",
+                  "value": 6291456
+                },
+                {
+                  "id": 7,
+                  "name": "initial_max_stream_data_uni",
+                  "value": 6291456
+                },
+                {
+                  "id": 12583,
+                  "name": "initial_rtt",
+                  "value": 1353
+                },
+                {
+                  "id": 32,
+                  "name": "max_datagram_frame_size",
+                  "value": 65536
+                },
+                {
+                  "id": 8,
+                  "name": "initial_max_streams_bidi",
+                  "value": 100
+                },
+                {
+                  "id": 3,
+                  "name": "max_udp_payload_size",
+                  "value": 1472
+                },
+                {
+                  "grease": true,
+                  "id": 2679411102418797903,
+                  "name": "GREASE",
+                  "value": 10
+                },
+                {
+                  "id": 9,
+                  "name": "initial_max_streams_uni",
+                  "value": 103
+                },
+                {
+                  "id": 17,
+                  "name": "version_information",
+                  "value": "00000001000000010a3a9a0a"
+                },
+                {
+                  "id": 6,
+                  "name": "initial_max_stream_data_bidi_remote",
+                  "value": 6291456
+                },
+                {
+                  "id": 4,
+                  "name": "initial_max_data",
+                  "value": 15728640
+                },
+                {
+                  "id": 12584,
+                  "name": "google_connection_options",
+                  "value": "4f5249474e4f4950"
+                },
+                {
+                  "id": 15,
+                  "name": "initial_source_connection_id",
+                  "value": true
+                }
+              ],
+              "hex": "0104800493e0050480600000070480600000712702454920048001000008024064030245c0e52f2e3396e9054f0ade4ef44b10617ad5ff2d09024067110c00000001000000010a3a9a0a060480600000040480f000007128084f5249474e4f49500f00",
+              "id": 57,
+              "length": 99,
+              "name": "quic_transport_parameters"
+            },
+            {
+              "data": [
+                {
+                  "hex": "0x0304",
+                  "id": 772,
+                  "name": "TLS 1.3"
+                }
+              ],
+              "hex": "020304",
+              "id": 43,
+              "length": 3,
+              "name": "supported_versions"
+            },
+            {
+              "data": [
+                "psk_dhe_ke"
+              ],
+              "hex": "0101",
+              "id": 45,
+              "length": 2,
+              "name": "psk_key_exchange_modes"
+            },
+            {
+              "hex": "0000",
+              "id": 4832,
+              "length": 2,
+              "name": "unknown(0x12e0)"
+            },
+            {
+              "data": [
+                {
+                  "hex": "0x0002",
+                  "id": 2,
+                  "name": "brotli"
+                }
+              ],
+              "hex": "020002",
+              "id": 27,
+              "length": 3,
+              "name": "compress_certificate"
+            },
+            {
+              "data": [
+                {
+                  "hex": "0x0403",
+                  "id": 1027,
+                  "name": "ecdsa_secp256r1_sha256"
+                },
+                {
+                  "hex": "0x0804",
+                  "id": 2052,
+                  "name": "rsa_pss_rsae_sha256"
+                },
+                {
+                  "hex": "0x0401",
+                  "id": 1025,
+                  "name": "rsa_pkcs1_sha256"
+                },
+                {
+                  "hex": "0x0503",
+                  "id": 1283,
+                  "name": "ecdsa_secp384r1_sha384"
+                },
+                {
+                  "hex": "0x0805",
+                  "id": 2053,
+                  "name": "rsa_pss_rsae_sha384"
+                },
+                {
+                  "hex": "0x0501",
+                  "id": 1281,
+                  "name": "rsa_pkcs1_sha384"
+                },
+                {
+                  "hex": "0x0806",
+                  "id": 2054,
+                  "name": "rsa_pss_rsae_sha512"
+                },
+                {
+                  "hex": "0x0601",
+                  "id": 1537,
+                  "name": "rsa_pkcs1_sha512"
+                },
+                {
+                  "hex": "0x0201",
+                  "id": 513,
+                  "name": "rsa_pkcs1_sha1"
+                }
+              ],
+              "hex": "0012040308040401050308050501080606010201",
+              "id": 13,
+              "length": 20,
+              "name": "signature_algorithms"
+            },
+            {
+              "data": [
+                "h3"
+              ],
+              "hex": "0003026833",
+              "id": 16,
+              "length": 5,
+              "name": "application_layer_protocol_negotiation"
+            },
+            {
+              "hex": "00b808839a648c9b2d010d04d679090c08839a648c9b2d010a04d679090b0582df1302010582df13020e08839a648c9b2d01070582df13020d08839a648c9b2d010b04d679090504d67909080582df13021404d679090a04d679090708839a648c9b2d011204d67909010582df13021308839a648c9b2d010804d679090d08839a648c9b2d011304d679090f0582df13020604d67909040582df13020f04d679090608839a648c9b2d010c0582df13021208839a648c9b2d0109",
+              "id": 51764,
+              "length": 186,
+              "name": "unknown(0xca34)"
+            },
+            {
+              "data": [
+                {
+                  "hex": "0x11ec",
+                  "id": 4588,
+                  "name": "X25519MLKEM768"
+                },
+                {
+                  "hex": "0x001d",
+                  "id": 29,
+                  "name": "x25519"
+                },
+                {
+                  "hex": "0x0017",
+                  "id": 23,
+                  "name": "secp256r1"
+                },
+                {
+                  "hex": "0x0018",
+                  "id": 24,
+                  "name": "secp384r1"
+                }
+              ],
+              "hex": "000811ec001d00170018",
+              "id": 10,
+              "length": 10,
+              "name": "supported_groups"
+            },
+            {
+              "data": {
+                "identities": 1
+              },
+              "hex": "009f0099bf23fb95e2eeff60e932d72b420f896e53a85e0d371864c80b3d68f14f553901063babf363e1324a8cec159841bb3acb6dafab1bbe81bbcabe71d429bf492e400fec431860022355fb07fc0491b7f73fe2c61fd93211d4a2ace4fa5787222f3f5600af2317846b77451d85bd6ba7fd66a7cb65046887cef003271d7a3e5d11e20d381713cfcf5b1d086dae19a396b8e3870f42efd6d0681362c57132550021202ee9e12be64125d4aa248ad993a6dd7494332b34db818b5bf6f086c82f403bf5",
+              "id": 41,
+              "length": 196,
+              "name": "pre_shared_key"
+            }
+          ],
+          "handshake_length": 1888,
+          "key_share_groups": [
+            {
+              "hex": "0x11ec",
+              "id": 4588,
+              "name": "X25519MLKEM768"
+            },
+            {
+              "hex": "0x001d",
+              "id": 29,
+              "name": "x25519"
+            }
+          ],
+          "legacy_version": "TLS 1.2",
+          "pre_shared_key": true,
+          "psk_identities": 1,
+          "psk_key_exchange_modes": "AQ==",
+          "quic_transport_parameters": [
+            {
+              "id": 1,
+              "name": "max_idle_timeout",
+              "value": 300000
+            },
+            {
+              "id": 5,
+              "name": "initial_max_stream_data_bidi_local",
+              "value": 6291456
+            },
+            {
+              "id": 7,
+              "name": "initial_max_stream_data_uni",
+              "value": 6291456
+            },
+            {
+              "id": 12583,
+              "name": "initial_rtt",
+              "value": 1353
+            },
+            {
+              "id": 32,
+              "name": "max_datagram_frame_size",
+              "value": 65536
+            },
+            {
+              "id": 8,
+              "name": "initial_max_streams_bidi",
+              "value": 100
+            },
+            {
+              "id": 3,
+              "name": "max_udp_payload_size",
+              "value": 1472
+            },
+            {
+              "grease": true,
+              "id": 2679411102418797903,
+              "name": "GREASE",
+              "value": 10
+            },
+            {
+              "id": 9,
+              "name": "initial_max_streams_uni",
+              "value": 103
+            },
+            {
+              "id": 17,
+              "name": "version_information",
+              "value": "00000001000000010a3a9a0a"
+            },
+            {
+              "id": 6,
+              "name": "initial_max_stream_data_bidi_remote",
+              "value": 6291456
+            },
+            {
+              "id": 4,
+              "name": "initial_max_data",
+              "value": 15728640
+            },
+            {
+              "id": 12584,
+              "name": "google_connection_options",
+              "value": "4f5249474e4f4950"
+            },
+            {
+              "id": 15,
+              "name": "initial_source_connection_id",
+              "value": true
+            }
+          ],
+          "raw_hex": "0100075c03039e043b2baa71bc55ffe449da62f87536a475ced5d5324dd1bbf731f8413d90f20000061301130213030100072d44cd00050003026833003304ea04e811ec04c078c2ba8d49ac3cdc0a74cb633f273b70c2802666646cd612092400cb2864df345df7e55ad3e8adc9607bc85a465d8aabcfe059b3737b02db1b328018635a051ee4351b8c35c5fc0b5cb11cee515c9cf0c1d3e62a213875397895eea42e8cd8ab4ee97635c4271880539139cd9eca34b3566907f3204600a24a2007b893ca5f7661b875a708d700f75c40ad3baba6c46c31f08e1648497bd9284ae9b5e4b39e6173b76e6c61d20b8fecd5c4acf602dfe462e3f008e5d98d12db1bcc7c7817aa76c54bb671e615be88aa6a032b12c18161f9b2be473208b40f3e364fba5b8f435c5a808b338ff71894670103330fecd3ab1a63487c42a60c7a207682102a00be3a9097f24814456994bcf7ac9bc9161b622caf80ce9ea6452aa6730761bbf7d844bfb82f56324dfd1159d40b2af31b8b6f8c921cd3527e665d5266ce7a056bece97fa2a871a534c18aa31b7c654e86cc104bb159fd54ae02fb5acf2c0ffd0ac06c7ca4827b3c718c6a7f1b59f5fc73dd56120dbabc9d034d0f377c390c479e0536396aa0e717b0699c2945d529a05b7c9d45c150c8c22f94b486431209901e2da4872dc7c84a0a1a9f606ae894a479832493f1babe9a121bb05b5d572fe2b282d75b45c3aa0261511fd12c2f258ac7640581162073f8874840c04f7cf56e5a396ea3f974c7a61b62766482d60e66f88da5cc40e7bca05641b8ef0270ab270a14d34777076206516fec2990b4e59f2cd41691acc73d7b81b1b44be29953d5b4b0b8a0914906693583bcd920a477b009bd50378d5b65aeb185bdcca29e255c0bc46176b6690c65886f0085d8c671daf1cefa8b6536182659b1b9b090a795941673b5588fa7911e2678abf9a3c7d53aae91cc1fdb3c0a6029634927ba71bd873a867a95bf3edb113cab22144436cab329871658415822d783bd06379c95f856d22913fac66798fc1919459d826687f72ccddb243e303ca64e414e6083b900e8a8623430ace8c4935cb699248882846d211516a201350ce6cba911667eab8c93ec358b59c588dcb5b2e84f1e1cc73f0324e615169353161fc0997421cef729753f2c1f279736fd4b59000a08146b86c54042df042199988e0fec5733284836f72815c6a3ff3b4fad4a2f26077febd10ed874be2f37a20f50369db55dc0f1a25b5c89074034f3534015e6977714272ec40fbf740c6c4021f06bca7c31c965635e830237650055c6f17be3b1747011c411c8c3f47914b1058a05830e3d314f744ba0c311cf89c9adb1680a272bac5ebc4b9339802e52be8d5b92ca80429531cb5b436890227ab3410197a63f4a3958a4087441fb2b7a47719cbc2c810aab46a03e0f0046a5d059e3c700b16550ad05109c247caa556014476f0fa483240bca429825a078a51ce326a63982df98554c30b7afd66794d86bc378196a5c0242c147007a7371b92b1857a1c5e46ec0b076b9844eec42bf0b4314027c113e2ace47d4a2a9e58dcfd2a65c78a1d268447b1c45b8553994404ffbd13e20fc5d6cb59047c2236ed62ceaf410f9424d0db771ac768d0feb60bd403e776405678988649b52ef07646c2b91248553511593e905bacc3a4c1fa16d3f56733e94cec7cc028468744fb490b84667df07aafc039011c14b1499ee60ce7e449dcd47c44e425bf2f8e90b285668c664b3d6972cb35999fee09357cd81132333bd1882864e741ed7d380f6ea4f001d002074a948fb7339e85b1d0b619bd7ef4aa9c6b6544bc33d88de1ea4246cb91df169003900630104800493e0050480600000070480600000712702454920048001000008024064030245c0e52f2e3396e9054f0ade4ef44b10617ad5ff2d09024067110c00000001000000010a3a9a0a060480600000040480f000007128084f5249474e4f49500f00002b0003020304002d0002010112e000020000001b0003020002000d00140012040308040401050308050501080606010201001000050003026833ca3400ba00b808839a648c9b2d010d04d679090c08839a648c9b2d010a04d679090b0582df1302010582df13020e08839a648c9b2d01070582df13020d08839a648c9b2d010b04d679090504d67909080582df13021404d679090a04d679090708839a648c9b2d011204d67909010582df13021308839a648c9b2d010804d679090d08839a648c9b2d011304d679090f0582df13020604d67909040582df13020f04d679090608839a648c9b2d010c0582df13021208839a648c9b2d0109000a000a000811ec001d00170018002900c4009f0099bf23fb95e2eeff60e932d72b420f896e53a85e0d371864c80b3d68f14f553901063babf363e1324a8cec159841bb3acb6dafab1bbe81bbcabe71d429bf492e400fec431860022355fb07fc0491b7f73fe2c61fd93211d4a2ace4fa5787222f3f5600af2317846b77451d85bd6ba7fd66a7cb65046887cef003271d7a3e5d11e20d381713cfcf5b1d086dae19a396b8e3870f42efd6d0681362c57132550021202ee9e12be64125d4aa248ad993a6dd7494332b34db818b5bf6f086c82f403bf5",
+          "record_version": "unknown(0x0000)",
+          "session_id_length": 0,
+          "signature_algorithms": [
+            {
+              "hex": "0x0403",
+              "id": 1027,
+              "name": "ecdsa_secp256r1_sha256"
+            },
+            {
+              "hex": "0x0804",
+              "id": 2052,
+              "name": "rsa_pss_rsae_sha256"
+            },
+            {
+              "hex": "0x0401",
+              "id": 1025,
+              "name": "rsa_pkcs1_sha256"
+            },
+            {
+              "hex": "0x0503",
+              "id": 1283,
+              "name": "ecdsa_secp384r1_sha384"
+            },
+            {
+              "hex": "0x0805",
+              "id": 2053,
+              "name": "rsa_pss_rsae_sha384"
+            },
+            {
+              "hex": "0x0501",
+              "id": 1281,
+              "name": "rsa_pkcs1_sha384"
+            },
+            {
+              "hex": "0x0806",
+              "id": 2054,
+              "name": "rsa_pss_rsae_sha512"
+            },
+            {
+              "hex": "0x0601",
+              "id": 1537,
+              "name": "rsa_pkcs1_sha512"
+            },
+            {
+              "hex": "0x0201",
+              "id": 513,
+              "name": "rsa_pkcs1_sha1"
+            }
+          ],
+          "supported_groups": [
+            {
+              "hex": "0x11ec",
+              "id": 4588,
+              "name": "X25519MLKEM768"
+            },
+            {
+              "hex": "0x001d",
+              "id": 29,
+              "name": "x25519"
+            },
+            {
+              "hex": "0x0017",
+              "id": 23,
+              "name": "secp256r1"
+            },
+            {
+              "hex": "0x0018",
+              "id": 24,
+              "name": "secp384r1"
+            }
+          ],
+          "supported_versions": [
+            "TLS 1.3"
+          ],
+          "uses_grease": false
+        },
+        "ja3": "771,4865-4866-4867,17613-51-57-43-45-4832-27-13-16-51764-10-41,4588-29-23-24,",
+        "ja3_hash": "890de31d04d97c4a41d14ea63a988bea",
+        "ja3n": "771,4865-4866-4867,10-13-16-27-41-43-45-51-57-4832-17613-51764,4588-29-23-24,",
+        "ja3n_hash": "983903d184d7fdfa3525037212f36868",
+        "ja4": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+        "ja4_o": "q13i0312h3_55b375c5d22e_3ad45d1fa588",
+        "ja4_r": "q13i0312h3_1301,1302,1303_000a,000d,001b,0029,002b,002d,0033,0039,12e0,44cd,ca34_0403,0804,0401,0503,0805,0501,0806,0601,0201",
+        "ja4_ro": "q13i0312h3_1301,1302,1303_44cd,0033,0039,002b,002d,12e0,001b,000d,0010,ca34,000a,0029_0403,0804,0401,0503,0805,0501,0806,0601,0201",
+        "peetprint": "772|h3|4588-29-23-24|1027-2052-1025-1283-2053-1281-2054-1537-513|1|2|4865-4866-4867|10-13-16-27-41-43-45-51-57-4832-17613-51764",
+        "peetprint_hash": "70fed7a0711b35508e95f63d5823a527"
+      },
+      "token_length": 0,
+      "transport_parameter_order": [
+        "1",
+        "5",
+        "7",
+        "3127",
+        "20",
+        "8",
+        "3",
+        "GREASE",
+        "9",
+        "11",
+        "6",
+        "4",
+        "3128",
+        "f"
+      ],
+      "version": "v1"
+    },
+    "rtt": {
+      "latest_rtt_ms": 0.178,
+      "min_rtt_ms": 0.122,
+      "rtt_var_ms": 0.798,
+      "smoothed_rtt_ms": 0.714
+    },
+    "settings": {
+      "enable_connect_protocol": false,
+      "h3_datagram": true,
+      "other": {
+        "GREASE_0x1a7a436d85": 1995859838,
+        "QPACK_BLOCKED_STREAMS": 100,
+        "QPACK_MAX_TABLE_CAPACITY": 65536
+      }
+    }
+  },
+  "id": "6UxqRahRYshS",
+  "label": "chrome-153-h3",
+  "libraries": {
+    "fingerprintjs": {
+      "components": {
+        "applePay": {
+          "value": -1
+        },
+        "architecture": {
+          "value": 255
+        },
+        "audio": {
+          "value": 124.04347776696522
+        },
+        "audioBaseLatency": {
+          "value": -2
+        },
+        "canvas": {
+          "value": {
+            "geometry": "data:image/png;base64,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",
+            "text": "data:image/png;base64,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",
+            "winding": true
+          }
+        },
+        "colorDepth": {
+          "value": 24
+        },
+        "colorGamut": {
+          "value": "srgb"
+        },
+        "contrast": {
+          "value": 0
+        },
+        "cookiesEnabled": {
+          "value": true
+        },
+        "cpuClass": {},
+        "dateTimeLocale": {
+          "value": "en-US"
+        },
+        "deviceMemory": {
+          "value": 16
+        },
+        "domBlockers": {},
+        "fontPreferences": {
+          "value": {
+            "apple": 149.312,
+            "default": 149.312,
+            "min": 9.343,
+            "mono": 133.062,
+            "sans": 144.015,
+            "serif": 149.312,
+            "system": 151.171
+          }
+        },
+        "fonts": {
+          "value": [
+            "Calibri",
+            "Helvetica Neue"
+          ]
+        },
+        "forcedColors": {
+          "value": false
+        },
+        "hardwareConcurrency": {
+          "value": 4
+        },
+        "hdr": {
+          "value": false
+        },
+        "indexedDB": {
+          "value": true
+        },
+        "invertedColors": {},
+        "languages": {
+          "value": [
+            [
+              "en-US"
+            ]
+          ]
+        },
+        "localStorage": {
+          "value": true
+        },
+        "math": {
+          "value": {
+            "acos": 1.4473588658278522,
+            "acosh": 709.889355822726,
+            "acoshPf": 355.291251501643,
+            "asin": 0.12343746096704435,
+            "asinh": 0.881373587019543,
+            "asinhPf": 0.8813735870195429,
+            "atan": 0.4636476090008061,
+            "atanh": 0.5493061443340549,
+            "atanhPf": 0.5493061443340549,
+            "cos": -0.8390715290095377,
+            "cosh": 1.5430806348152437,
+            "coshPf": 1.5430806348152437,
+            "exp": 2.718281828459045,
+            "expm1": 1.7182818284590453,
+            "expm1Pf": 1.718281828459045,
+            "log1p": 2.3978952727983707,
+            "log1pPf": 2.3978952727983707,
+            "powPI": 1.9275814160560206e-50,
+            "sin": 0.8178819121159085,
+            "sinh": 1.1752011936438014,
+            "sinhPf": 2.534342107873324,
+            "tan": -1.4214488238747245,
+            "tanh": 0.7615941559557649,
+            "tanhPf": 0.7615941559557649
+          }
+        },
+        "monochrome": {
+          "value": 0
+        },
+        "openDatabase": {
+          "value": false
+        },
+        "osCpu": {},
+        "pdfViewerEnabled": {
+          "value": true
+        },
+        "platform": {
+          "value": "Linux x86_64"
+        },
+        "plugins": {
+          "value": [
+            {
+              "description": "Portable Document Format",
+              "mimeTypes": [
+                {
+                  "suffixes": "pdf",
+                  "type": "application/pdf"
+                },
+                {
+                  "suffixes": "pdf",
+                  "type": "text/pdf"
+                }
+              ],
+              "name": "PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "mimeTypes": [
+                {
+                  "suffixes": "pdf",
+                  "type": "application/pdf"
+                },
+                {
+                  "suffixes": "pdf",
+                  "type": "text/pdf"
+                }
+              ],
+              "name": "Chrome PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "mimeTypes": [
+                {
+                  "suffixes": "pdf",
+                  "type": "application/pdf"
+                },
+                {
+                  "suffixes": "pdf",
+                  "type": "text/pdf"
+                }
+              ],
+              "name": "Chromium PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "mimeTypes": [
+                {
+                  "suffixes": "pdf",
+                  "type": "application/pdf"
+                },
+                {
+                  "suffixes": "pdf",
+                  "type": "text/pdf"
+                }
+              ],
+              "name": "Microsoft Edge PDF Viewer"
+            },
+            {
+              "description": "Portable Document Format",
+              "mimeTypes": [
+                {
+                  "suffixes": "pdf",
+                  "type": "application/pdf"
+                },
+                {
+                  "suffixes": "pdf",
+                  "type": "text/pdf"
+                }
+              ],
+              "name": "WebKit built-in PDF"
+            }
+          ]
+        },
+        "privateClickMeasurement": {},
+        "reducedMotion": {
+          "value": false
+        },
+        "reducedTransparency": {
+          "value": false
+        },
+        "screenFrame": {
+          "value": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "screenResolution": {
+          "value": [
+            800,
+            600
+          ]
+        },
+        "sessionStorage": {
+          "value": true
+        },
+        "timezone": {
+          "value": "UTC"
+        },
+        "touchSupport": {
+          "value": {
+            "maxTouchPoints": 0,
+            "touchEvent": false,
+            "touchStart": false
+          }
+        },
+        "userAgentData": {
+          "value": {
+            "architecture": "x86",
+            "bitness": "64",
+            "brands": [
+              "Chromium"
+            ],
+            "mobile": false,
+            "model": "",
+            "platform": "Linux",
+            "platformVersion": ""
+          }
+        },
+        "vendor": {
+          "value": "Google Inc."
+        },
+        "vendorFlavors": {
+          "value": [
+            "chrome"
+          ]
+        },
+        "webGlBasics": {
+          "value": {
+            "renderer": "WebKit WebGL",
+            "rendererUnmasked": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "shadingLanguageVersion": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "vendor": "WebKit",
+            "vendorUnmasked": "Google Inc. (Google)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
+          }
+        },
+        "webGlExtensions": {
+          "value": {
+            "contextAttributes": [
+              "alpha=true",
+              "antialias=true",
+              "depth=true",
+              "desynchronized=false",
+              "failIfMajorPerformanceCaveat=false",
+              "powerPreference=default",
+              "premultipliedAlpha=true",
+              "preserveDrawingBuffer=false",
+              "stencil=false",
+              "xrCompatible=false"
+            ],
+            "extensionParameters": [
+              "CLIP_DEPTH_MODE_EXT=37725",
+              "CLIP_ORIGIN_EXT=37724",
+              "COLOR_ATTACHMENT0_WEBGL=36064",
+              "COLOR_ATTACHMENT10_WEBGL=36074",
+              "COLOR_ATTACHMENT11_WEBGL=36075",
+              "COLOR_ATTACHMENT12_WEBGL=36076",
+              "COLOR_ATTACHMENT13_WEBGL=36077",
+              "COLOR_ATTACHMENT14_WEBGL=36078",
+              "COLOR_ATTACHMENT15_WEBGL=36079",
+              "COLOR_ATTACHMENT1_WEBGL=36065",
+              "COLOR_ATTACHMENT2_WEBGL=36066",
+              "COLOR_ATTACHMENT3_WEBGL=36067",
+              "COLOR_ATTACHMENT4_WEBGL=36068",
+              "COLOR_ATTACHMENT5_WEBGL=36069",
+              "COLOR_ATTACHMENT6_WEBGL=36070",
+              "COLOR_ATTACHMENT7_WEBGL=36071",
+              "COLOR_ATTACHMENT8_WEBGL=36072",
+              "COLOR_ATTACHMENT9_WEBGL=36073",
+              "COMPRESSED_R11_EAC=37488",
+              "COMPRESSED_RED_GREEN_RGTC2_EXT=36285",
+              "COMPRESSED_RED_RGTC1_EXT=36283",
+              "COMPRESSED_RG11_EAC=37490",
+              "COMPRESSED_RGB8_ETC2=37492",
+              "COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2=37494",
+              "COMPRESSED_RGBA8_ETC2_EAC=37496",
+              "COMPRESSED_RGBA_ASTC_10x10_KHR=37819",
+              "COMPRESSED_RGBA_ASTC_10x5_KHR=37816",
+              "COMPRESSED_RGBA_ASTC_10x6_KHR=37817",
+              "COMPRESSED_RGBA_ASTC_10x8_KHR=37818",
+              "COMPRESSED_RGBA_ASTC_12x10_KHR=37820",
+              "COMPRESSED_RGBA_ASTC_12x12_KHR=37821",
+              "COMPRESSED_RGBA_ASTC_4x4_KHR=37808",
+              "COMPRESSED_RGBA_ASTC_5x4_KHR=37809",
+              "COMPRESSED_RGBA_ASTC_5x5_KHR=37810",
+              "COMPRESSED_RGBA_ASTC_6x5_KHR=37811",
+              "COMPRESSED_RGBA_ASTC_6x6_KHR=37812",
+              "COMPRESSED_RGBA_ASTC_8x5_KHR=37813",
+              "COMPRESSED_RGBA_ASTC_8x6_KHR=37814",
+              "COMPRESSED_RGBA_ASTC_8x8_KHR=37815",
+              "COMPRESSED_RGBA_BPTC_UNORM_EXT=36492",
+              "COMPRESSED_RGBA_S3TC_DXT1_EXT=33777",
+              "COMPRESSED_RGBA_S3TC_DXT3_EXT=33778",
+              "COMPRESSED_RGBA_S3TC_DXT5_EXT=33779",
+              "COMPRESSED_RGB_BPTC_SIGNED_FLOAT_EXT=36494",
+              "COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_EXT=36495",
+              "COMPRESSED_RGB_ETC1_WEBGL=36196",
+              "COMPRESSED_RGB_S3TC_DXT1_EXT=33776",
+              "COMPRESSED_SIGNED_R11_EAC=37489",
+              "COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT=36286",
+              "COMPRESSED_SIGNED_RED_RGTC1_EXT=36284",
+              "COMPRESSED_SIGNED_RG11_EAC=37491",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR=37851",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR=37848",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR=37849",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR=37850",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR=37852",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR=37853",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR=37840",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR=37841",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR=37842",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR=37843",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR=37844",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR=37845",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR=37846",
+              "COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR=37847",
+              "COMPRESSED_SRGB8_ALPHA8_ETC2_EAC=37497",
+              "COMPRESSED_SRGB8_ETC2=37493",
+              "COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2=37495",
+              "COMPRESSED_SRGB_ALPHA_BPTC_UNORM_EXT=36493",
+              "COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT=35917",
+              "COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT=35918",
+              "COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT=35919",
+              "COMPRESSED_SRGB_S3TC_DXT1_EXT=35916",
+              "DEPTH_CLAMP_EXT=34383",
+              "DRAW_BUFFER0_WEBGL=34853=1029",
+              "DRAW_BUFFER10_WEBGL=34863",
+              "DRAW_BUFFER11_WEBGL=34864",
+              "DRAW_BUFFER12_WEBGL=34865",
+              "DRAW_BUFFER13_WEBGL=34866",
+              "DRAW_BUFFER14_WEBGL=34867",
+              "DRAW_BUFFER15_WEBGL=34868",
+              "DRAW_BUFFER1_WEBGL=34854=1029",
+              "DRAW_BUFFER2_WEBGL=34855",
+              "DRAW_BUFFER3_WEBGL=34856",
+              "DRAW_BUFFER4_WEBGL=34857",
+              "DRAW_BUFFER5_WEBGL=34858",
+              "DRAW_BUFFER6_WEBGL=34859",
+              "DRAW_BUFFER7_WEBGL=34860",
+              "DRAW_BUFFER8_WEBGL=34861",
+              "DRAW_BUFFER9_WEBGL=34862",
+              "FRAGMENT_SHADER_DERIVATIVE_HINT_OES=35723=4352",
+              "FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT=33296",
+              "FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT=33297",
+              "FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT=33297",
+              "HALF_FLOAT_OES=36193",
+              "LOWER_LEFT_EXT=36001",
+              "MAX_COLOR_ATTACHMENTS_WEBGL=36063=8",
+              "MAX_DRAW_BUFFERS_WEBGL=34852=8",
+              "MAX_EXT=32776",
+              "MAX_TEXTURE_MAX_ANISOTROPY_EXT=34047=16",
+              "MIN_EXT=32775",
+              "MIRROR_CLAMP_TO_EDGE_EXT=34627",
+              "NEGATIVE_ONE_TO_ONE_EXT=37726",
+              "POLYGON_OFFSET_CLAMP_EXT=36379",
+              "RGB16F_EXT=34843",
+              "RGBA16F_EXT=34842",
+              "RGBA32F_EXT=34836",
+              "SRGB8_ALPHA8_EXT=35907",
+              "SRGB_ALPHA_EXT=35906",
+              "SRGB_EXT=35904",
+              "TEXTURE_MAX_ANISOTROPY_EXT=34046",
+              "UNMASKED_RENDERER_WEBGL=37446",
+              "UNMASKED_VENDOR_WEBGL=37445",
+              "UNSIGNED_INT_24_8_WEBGL=34042",
+              "UNSIGNED_NORMALIZED_EXT=35863",
+              "UNSIGNED_NORMALIZED_EXT=35863",
+              "UPPER_LEFT_EXT=36002",
+              "VERTEX_ARRAY_BINDING_OES=34229=null",
+              "VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE=35070",
+              "ZERO_TO_ONE_EXT=37727"
+            ],
+            "extensions": [
+              "ANGLE_instanced_arrays",
+              "EXT_blend_minmax",
+              "EXT_clip_control",
+              "EXT_color_buffer_half_float",
+              "EXT_depth_clamp",
+              "EXT_float_blend",
+              "EXT_frag_depth",
+              "EXT_polygon_offset_clamp",
+              "EXT_shader_texture_lod",
+              "EXT_texture_compression_bptc",
+              "EXT_texture_compression_rgtc",
+              "EXT_texture_filter_anisotropic",
+              "EXT_texture_mirror_clamp_to_edge",
+              "EXT_sRGB",
+              "OES_element_index_uint",
+              "OES_fbo_render_mipmap",
+              "OES_standard_derivatives",
+              "OES_texture_float",
+              "OES_texture_float_linear",
+              "OES_texture_half_float",
+              "OES_texture_half_float_linear",
+              "OES_vertex_array_object",
+              "WEBGL_color_buffer_float",
+              "WEBGL_compressed_texture_astc",
+              "WEBGL_compressed_texture_etc",
+              "WEBGL_compressed_texture_etc1",
+              "WEBGL_compressed_texture_s3tc",
+              "WEBGL_compressed_texture_s3tc_srgb",
+              "WEBGL_debug_renderer_info",
+              "WEBGL_debug_shaders",
+              "WEBGL_depth_texture",
+              "WEBGL_draw_buffers",
+              "WEBGL_lose_context",
+              "WEBGL_multi_draw",
+              "WEBGL_polygon_mode"
+            ],
+            "parameters": [
+              "ACTIVE_ATTRIBUTES=35721",
+              "ACTIVE_TEXTURE=34016=33984",
+              "ACTIVE_UNIFORMS=35718",
+              "ALIASED_LINE_WIDTH_RANGE=33902=1,1",
+              "ALIASED_POINT_SIZE_RANGE=33901=1,1023",
+              "ALPHA=6406",
+              "ALPHA_BITS=3413=8",
+              "ALWAYS=519",
+              "ARRAY_BUFFER=34962",
+              "ARRAY_BUFFER_BINDING=34964",
+              "ATTACHED_SHADERS=35717",
+              "BACK=1029",
+              "BLEND=3042=false",
+              "BLEND_COLOR=32773=0,0,0,0",
+              "BLEND_DST_ALPHA=32970=0",
+              "BLEND_DST_RGB=32968=0",
+              "BLEND_EQUATION=32777=32774",
+              "BLEND_EQUATION_ALPHA=34877=32774",
+              "BLEND_EQUATION_RGB=32777=32774",
+              "BLEND_SRC_ALPHA=32971=1",
+              "BLEND_SRC_RGB=32969=1",
+              "BLUE_BITS=3412=8",
+              "BOOL=35670",
+              "BOOL_VEC2=35671",
+              "BOOL_VEC3=35672",
+              "BOOL_VEC4=35673",
+              "BROWSER_DEFAULT_WEBGL=37444",
+              "BUFFER_SIZE=34660",
+              "BUFFER_USAGE=34661",
+              "BYTE=5120",
+              "CCW=2305",
+              "CLAMP_TO_EDGE=33071",
+              "COLOR_ATTACHMENT0=36064",
+              "COLOR_BUFFER_BIT=16384",
+              "COLOR_CLEAR_VALUE=3106=0,0,0,0",
+              "COLOR_WRITEMASK=3107=true,true,true,true",
+              "COMPILE_STATUS=35713",
+              "COMPRESSED_TEXTURE_FORMATS=34467=",
+              "CONSTANT_ALPHA=32771",
+              "CONSTANT_COLOR=32769",
+              "CONTEXT_LOST_WEBGL=37442",
+              "CULL_FACE=2884=false",
+              "CULL_FACE_MODE=2885=1029",
+              "CURRENT_PROGRAM=35725",
+              "CURRENT_VERTEX_ATTRIB=34342",
+              "CW=2304",
+              "DECR=7683",
+              "DECR_WRAP=34056",
+              "DELETE_STATUS=35712",
+              "DEPTH_ATTACHMENT=36096",
+              "DEPTH_BITS=3414=24",
+              "DEPTH_BUFFER_BIT=256",
+              "DEPTH_CLEAR_VALUE=2931=1",
+              "DEPTH_COMPONENT16=33189",
+              "DEPTH_COMPONENT=6402",
+              "DEPTH_FUNC=2932=513",
+              "DEPTH_RANGE=2928=0,1",
+              "DEPTH_STENCIL=34041",
+              "DEPTH_STENCIL_ATTACHMENT=33306",
+              "DEPTH_TEST=2929=false",
+              "DEPTH_WRITEMASK=2930=true",
+              "DITHER=3024=true",
+              "DONT_CARE=4352",
+              "DST_ALPHA=772",
+              "DST_COLOR=774",
+              "DYNAMIC_DRAW=35048",
+              "ELEMENT_ARRAY_BUFFER=34963",
+              "ELEMENT_ARRAY_BUFFER_BINDING=34965",
+              "EQUAL=514",
+              "FASTEST=4353",
+              "FLOAT=5126",
+              "FLOAT_MAT2=35674",
+              "FLOAT_MAT3=35675",
+              "FLOAT_MAT4=35676",
+              "FLOAT_VEC2=35664",
+              "FLOAT_VEC3=35665",
+              "FLOAT_VEC4=35666",
+              "FRAGMENT_SHADER=35632",
+              "FRAMEBUFFER=36160",
+              "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME=36049",
+              "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE=36048",
+              "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE=36051",
+              "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL=36050",
+              "FRAMEBUFFER_BINDING=36006",
+              "FRAMEBUFFER_COMPLETE=36053",
+              "FRAMEBUFFER_INCOMPLETE_ATTACHMENT=36054",
+              "FRAMEBUFFER_INCOMPLETE_DIMENSIONS=36057",
+              "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT=36055",
+              "FRAMEBUFFER_UNSUPPORTED=36061",
+              "FRONT=1028",
+              "FRONT_AND_BACK=1032",
+              "FRONT_FACE=2886=2305",
+              "FUNC_ADD=32774",
+              "FUNC_REVERSE_SUBTRACT=32779",
+              "FUNC_SUBTRACT=32778",
+              "GENERATE_MIPMAP_HINT=33170=4352",
+              "GEQUAL=518",
+              "GREATER=516",
+              "GREEN_BITS=3411=8",
+              "HIGH_FLOAT=36338",
+              "HIGH_INT=36341",
+              "IMPLEMENTATION_COLOR_READ_FORMAT=35739=6408",
+              "IMPLEMENTATION_COLOR_READ_TYPE=35738=5121",
+              "INCR=7682",
+              "INCR_WRAP=34055",
+              "INT=5124",
+              "INT_VEC2=35667",
+              "INT_VEC3=35668",
+              "INT_VEC4=35669",
+              "INVALID_ENUM=1280",
+              "INVALID_FRAMEBUFFER_OPERATION=1286",
+              "INVALID_OPERATION=1282",
+              "INVALID_VALUE=1281",
+              "INVERT=5386",
+              "KEEP=7680",
+              "LEQUAL=515",
+              "LESS=513",
+              "LINEAR=9729",
+              "LINEAR_MIPMAP_LINEAR=9987",
+              "LINEAR_MIPMAP_NEAREST=9985",
+              "LINES=1",
+              "LINE_LOOP=2",
+              "LINE_STRIP=3",
+              "LINE_WIDTH=2849=1",
+              "LINK_STATUS=35714",
+              "LOW_FLOAT=36336",
+              "LOW_INT=36339",
+              "LUMINANCE=6409",
+              "LUMINANCE_ALPHA=6410",
+              "MAX_COMBINED_TEXTURE_IMAGE_UNITS=35661=64",
+              "MAX_CUBE_MAP_TEXTURE_SIZE=34076=16384",
+              "MAX_FRAGMENT_UNIFORM_VECTORS=36349=4096",
+              "MAX_RENDERBUFFER_SIZE=34024=8192",
+              "MAX_TEXTURE_IMAGE_UNITS=34930=32",
+              "MAX_TEXTURE_SIZE=3379=8192",
+              "MAX_VARYING_VECTORS=36348=31",
+              "MAX_VERTEX_ATTRIBS=34921=16",
+              "MAX_VERTEX_TEXTURE_IMAGE_UNITS=35660=32",
+              "MAX_VERTEX_UNIFORM_VECTORS=36347=4096",
+              "MAX_VIEWPORT_DIMS=3386=8192,8192",
+              "MEDIUM_FLOAT=36337",
+              "MEDIUM_INT=36340",
+              "MIRRORED_REPEAT=33648",
+              "NEAREST=9728",
+              "NEAREST_MIPMAP_LINEAR=9986",
+              "NEAREST_MIPMAP_NEAREST=9984",
+              "NEVER=512",
+              "NICEST=4354",
+              "NONE=0",
+              "NOTEQUAL=517",
+              "NO_ERROR=0",
+              "ONE=1",
+              "ONE_MINUS_CONSTANT_ALPHA=32772",
+              "ONE_MINUS_CONSTANT_COLOR=32770",
+              "ONE_MINUS_DST_ALPHA=773",
+              "ONE_MINUS_DST_COLOR=775",
+              "ONE_MINUS_SRC_ALPHA=771",
+              "ONE_MINUS_SRC_COLOR=769",
+              "OUT_OF_MEMORY=1285",
+              "PACK_ALIGNMENT=3333=4",
+              "POINTS=0",
+              "POLYGON_OFFSET_FACTOR=32824=0",
+              "POLYGON_OFFSET_FILL=32823=false",
+              "POLYGON_OFFSET_UNITS=10752=0",
+              "RED_BITS=3410=8",
+              "RENDERBUFFER=36161",
+              "RENDERBUFFER_ALPHA_SIZE=36179",
+              "RENDERBUFFER_BINDING=36007",
+              "RENDERBUFFER_BLUE_SIZE=36178",
+              "RENDERBUFFER_DEPTH_SIZE=36180",
+              "RENDERBUFFER_GREEN_SIZE=36177",
+              "RENDERBUFFER_HEIGHT=36163",
+              "RENDERBUFFER_INTERNAL_FORMAT=36164",
+              "RENDERBUFFER_RED_SIZE=36176",
+              "RENDERBUFFER_STENCIL_SIZE=36181",
+              "RENDERBUFFER_WIDTH=36162",
+              "RENDERER=7937=WebKit WebGL",
+              "REPEAT=10497",
+              "REPLACE=7681",
+              "RGB565=36194",
+              "RGB5_A1=32855",
+              "RGB8=32849",
+              "RGB=6407",
+              "RGBA4=32854",
+              "RGBA8=32856",
+              "RGBA=6408",
+              "SAMPLER_2D=35678",
+              "SAMPLER_CUBE=35680",
+              "SAMPLES=32937=4",
+              "SAMPLE_ALPHA_TO_COVERAGE=32926",
+              "SAMPLE_BUFFERS=32936=1",
+              "SAMPLE_COVERAGE=32928",
+              "SAMPLE_COVERAGE_INVERT=32939=false",
+              "SAMPLE_COVERAGE_VALUE=32938=1",
+              "SCISSOR_BOX=3088=0,0,300,150",
+              "SCISSOR_TEST=3089=false",
+              "SHADER_TYPE=35663",
+              "SHADING_LANGUAGE_VERSION=35724=WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+              "SHORT=5122",
+              "SRC_ALPHA=770",
+              "SRC_ALPHA_SATURATE=776",
+              "SRC_COLOR=768",
+              "STATIC_DRAW=35044",
+              "STENCIL_ATTACHMENT=36128",
+              "STENCIL_BACK_FAIL=34817=7680",
+              "STENCIL_BACK_FUNC=34816=519",
+              "STENCIL_BACK_PASS_DEPTH_FAIL=34818=7680",
+              "STENCIL_BACK_PASS_DEPTH_PASS=34819=7680",
+              "STENCIL_BACK_REF=36003=0",
+              "STENCIL_BACK_VALUE_MASK=36004=4294967295",
+              "STENCIL_BACK_WRITEMASK=36005=4294967295",
+              "STENCIL_BITS=3415=0",
+              "STENCIL_BUFFER_BIT=1024",
+              "STENCIL_CLEAR_VALUE=2961=0",
+              "STENCIL_FAIL=2964=7680",
+              "STENCIL_FUNC=2962=519",
+              "STENCIL_INDEX8=36168",
+              "STENCIL_PASS_DEPTH_FAIL=2965=7680",
+              "STENCIL_PASS_DEPTH_PASS=2966=7680",
+              "STENCIL_REF=2967=0",
+              "STENCIL_TEST=2960=false",
+              "STENCIL_VALUE_MASK=2963=4294967295",
+              "STENCIL_WRITEMASK=2968=4294967295",
+              "STREAM_DRAW=35040",
+              "SUBPIXEL_BITS=3408=4",
+              "TEXTURE0=33984",
+              "TEXTURE10=33994",
+              "TEXTURE11=33995",
+              "TEXTURE12=33996",
+              "TEXTURE13=33997",
+              "TEXTURE14=33998",
+              "TEXTURE15=33999",
+              "TEXTURE16=34000",
+              "TEXTURE17=34001",
+              "TEXTURE18=34002",
+              "TEXTURE19=34003",
+              "TEXTURE1=33985",
+              "TEXTURE20=34004",
+              "TEXTURE21=34005",
+              "TEXTURE22=34006",
+              "TEXTURE23=34007",
+              "TEXTURE24=34008",
+              "TEXTURE25=34009",
+              "TEXTURE26=34010",
+              "TEXTURE27=34011",
+              "TEXTURE28=34012",
+              "TEXTURE29=34013",
+              "TEXTURE2=33986",
+              "TEXTURE30=34014",
+              "TEXTURE31=34015",
+              "TEXTURE3=33987",
+              "TEXTURE4=33988",
+              "TEXTURE5=33989",
+              "TEXTURE6=33990",
+              "TEXTURE7=33991",
+              "TEXTURE8=33992",
+              "TEXTURE9=33993",
+              "TEXTURE=5890",
+              "TEXTURE_2D=3553",
+              "TEXTURE_BINDING_2D=32873",
+              "TEXTURE_BINDING_CUBE_MAP=34068",
+              "TEXTURE_CUBE_MAP=34067",
+              "TEXTURE_CUBE_MAP_NEGATIVE_X=34070",
+              "TEXTURE_CUBE_MAP_NEGATIVE_Y=34072",
+              "TEXTURE_CUBE_MAP_NEGATIVE_Z=34074",
+              "TEXTURE_CUBE_MAP_POSITIVE_X=34069",
+              "TEXTURE_CUBE_MAP_POSITIVE_Y=34071",
+              "TEXTURE_CUBE_MAP_POSITIVE_Z=34073",
+              "TEXTURE_MAG_FILTER=10240",
+              "TEXTURE_MIN_FILTER=10241",
+              "TEXTURE_WRAP_S=10242",
+              "TEXTURE_WRAP_T=10243",
+              "TRIANGLES=4",
+              "TRIANGLE_FAN=6",
+              "TRIANGLE_STRIP=5",
+              "UNPACK_ALIGNMENT=3317=4",
+              "UNPACK_COLORSPACE_CONVERSION_WEBGL=37443=37444",
+              "UNPACK_FLIP_Y_WEBGL=37440=false",
+              "UNPACK_PREMULTIPLY_ALPHA_WEBGL=37441=false",
+              "UNSIGNED_BYTE=5121",
+              "UNSIGNED_INT=5125",
+              "UNSIGNED_SHORT=5123",
+              "UNSIGNED_SHORT_4_4_4_4=32819",
+              "UNSIGNED_SHORT_5_5_5_1=32820",
+              "UNSIGNED_SHORT_5_6_5=33635",
+              "VALIDATE_STATUS=35715",
+              "VENDOR=7936=WebKit",
+              "VERSION=7938=WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+              "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING=34975",
+              "VERTEX_ATTRIB_ARRAY_ENABLED=34338",
+              "VERTEX_ATTRIB_ARRAY_NORMALIZED=34922",
+              "VERTEX_ATTRIB_ARRAY_POINTER=34373",
+              "VERTEX_ATTRIB_ARRAY_SIZE=34339",
+              "VERTEX_ATTRIB_ARRAY_STRIDE=34340",
+              "VERTEX_ATTRIB_ARRAY_TYPE=34341",
+              "VERTEX_SHADER=35633",
+              "VIEWPORT=2978=0,0,300,150",
+              "ZERO=0"
+            ],
+            "shaderPrecisions": [
+              "FRAGMENT_SHADER.LOW_FLOAT=15,15,10",
+              "FRAGMENT_SHADER.MEDIUM_FLOAT=15,15,10",
+              "FRAGMENT_SHADER.HIGH_FLOAT=127,127,23",
+              "FRAGMENT_SHADER.LOW_INT=15,14,0",
+              "FRAGMENT_SHADER.MEDIUM_INT=15,14,0",
+              "FRAGMENT_SHADER.HIGH_INT=31,30,0",
+              "VERTEX_SHADER.LOW_FLOAT=15,15,10",
+              "VERTEX_SHADER.MEDIUM_FLOAT=15,15,10",
+              "VERTEX_SHADER.HIGH_FLOAT=127,127,23",
+              "VERTEX_SHADER.LOW_INT=15,14,0",
+              "VERTEX_SHADER.MEDIUM_INT=15,14,0",
+              "VERTEX_SHADER.HIGH_INT=31,30,0"
+            ],
+            "unsupportedExtensions": []
+          }
+        }
+      },
+      "confidence": {
+        "comment": "0.997 if upgrade to Pro: https://fingerprint.com/github/?utm_source=oss&utm_medium=referral&utm_campaign=confidence_score",
+        "score": 0.7
+      },
+      "duration_ms": 551.6,
+      "version": "5.3.0",
+      "visitorId": "31b4f88f4eb04c4ae918bd669e3dca93"
+    },
+    "thumbmarkjs": {
+      "components": {
+        "audio": {
+          "channelCountMode": "max",
+          "maxChannels": 1,
+          "sampleHash": 1168.9068443028132
+        },
+        "canvas": {
+          "commonPixelsHash": "187b2706b61b22ae456df04a24b5a15a"
+        },
+        "fonts": {
+          "Calibri": 420.046875,
+          "Courier": 432.0703125,
+          "Courier New": 432.0703125,
+          "Inter": 477.2109375,
+          "Segoe UI": 477.2109375
+        },
+        "hardware": {
+          "architecture": 255,
+          "deviceMemory": "16",
+          "jsHeapSizeLimit": 4395630592,
+          "videocard": {
+            "renderer": "WebKit WebGL",
+            "shadingLanguageVersion": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "vendor": "WebKit",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
+          }
+        },
+        "locales": {
+          "languages": "en-US",
+          "timezone": "UTC"
+        },
+        "math": {
+          "acos": 1.0471975511965979,
+          "asin": -1.0072126408970492e-16,
+          "cos": -4.854249971455313e-16,
+          "largeCos": 0.7639704044417283,
+          "largeSin": -0.6452512852657808,
+          "largeTan": -0.8446024630198843,
+          "sin": -1.9461946644816207e-16,
+          "tan": 6.980860926542689e-14
+        },
+        "plugins": {
+          "plugins": [
+            "PDF Viewer|internal-pdf-viewer|Portable Document Format",
+            "Chrome PDF Viewer|internal-pdf-viewer|Portable Document Format",
+            "Chromium PDF Viewer|internal-pdf-viewer|Portable Document Format",
+            "Microsoft Edge PDF Viewer|internal-pdf-viewer|Portable Document Format",
+            "WebKit built-in PDF|internal-pdf-viewer|Portable Document Format"
+          ]
+        },
+        "screen": {
+          "colorDepth": 24,
+          "is_touchscreen": false,
+          "maxTouchPoints": 0,
+          "mediaMatches": [
+            "prefers-contrast: no-preference",
+            "any-hover: none",
+            "any-pointer: none",
+            "pointer: none",
+            "hover: none",
+            "update: fast",
+            "prefers-reduced-motion: no-preference",
+            "prefers-reduced-transparency: no-preference",
+            "scripting: enabled",
+            "forced-colors: none"
+          ]
+        },
+        "speech": {
+          "details": {
+            "voiceCount": 0,
+            "voicesHash": "ee1da132c449b100c449b100c449b100"
+          },
+          "hash": "7f999754cc92098c110357aa8b996920"
+        },
+        "system": {
+          "applePayVersion": 0,
+          "browser": {
+            "name": "Chrome",
+            "version": "153.0.0.0"
+          },
+          "cookieEnabled": true,
+          "hardwareConcurrency": 4,
+          "mobile": false,
+          "platform": "Linux x86_64",
+          "product": "Gecko",
+          "productSub": "20030107",
+          "useragent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        "webgl": {
+          "commonPixelsHash": "bf39a9ee67b904831c85c51f028df7af"
+        },
+        "webrtc": {
+          "details": {
+            "audio": {
+              "count": 8,
+              "hash": "85f0a52aa9c1d7b03460cd76ea36d922"
+            },
+            "candidateType": "host",
+            "extensionsHash": "84c8cd8c79828547f1b35b1c512313e6",
+            "supported": true,
+            "video": {
+              "count": 34,
+              "hash": "85646fe0c81c33bc0d76610446f619d7"
+            }
+          },
+          "hash": "10e275dffd7e8f9a6b966f0348730654"
+        }
+      },
+      "duration_ms": 511.8,
+      "thumbmark": "e25aa1ab34ef7faccb9b108fe0d116ba",
+      "version": "1.12.0"
+    }
+  },
+  "mode": "store",
+  "navigation": {
+    "at": "2026-11-03T23:53:01.07397296Z",
+    "connection_id": 5,
+    "http": {
+      "client_hints": {
+        "device-memory": "16",
+        "downlink": "1.55",
+        "dpr": "1",
+        "ect": "4g",
+        "rtt": "0",
+        "sec-ch-device-memory": "16",
+        "sec-ch-dpr": "1",
+        "sec-ch-prefers-color-scheme": "light",
+        "sec-ch-prefers-reduced-motion": "no-preference",
+        "sec-ch-prefers-reduced-transparency": "no-preference",
+        "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+        "sec-ch-ua-arch": "\"x86\"",
+        "sec-ch-ua-bitness": "\"64\"",
+        "sec-ch-ua-form-factors": "\"Desktop\"",
+        "sec-ch-ua-full-version": "\"153.0.8010.12\"",
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"153.0.8010.12\", \"Not_A Brand\";v=\"8.0.0.0\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "sec-ch-ua-platform-version": "\"\"",
+        "sec-ch-ua-wow64": "?0",
+        "sec-ch-viewport-height": "437",
+        "sec-ch-viewport-width": "780",
+        "viewport-width": "780"
+      },
+      "header_bytes": 1185,
+      "header_count": 34,
+      "header_name_casing": "Canonical-Case",
+      "header_order": [
+        "Accept",
+        "Accept-Encoding",
+        "Accept-Language",
+        "Device-Memory",
+        "Downlink",
+        "Dpr",
+        "Ect",
+        "Priority",
+        "Rtt",
+        "Sec-Ch-Device-Memory",
+        "Sec-Ch-Dpr",
+        "Sec-Ch-Prefers-Color-Scheme",
+        "Sec-Ch-Prefers-Reduced-Motion",
+        "Sec-Ch-Prefers-Reduced-Transparency",
+        "Sec-Ch-Ua",
+        "Sec-Ch-Ua-Arch",
+        "Sec-Ch-Ua-Bitness",
+        "Sec-Ch-Ua-Form-Factors",
+        "Sec-Ch-Ua-Full-Version",
+        "Sec-Ch-Ua-Full-Version-List",
+        "Sec-Ch-Ua-Mobile",
+        "Sec-Ch-Ua-Model",
+        "Sec-Ch-Ua-Platform",
+        "Sec-Ch-Ua-Platform-Version",
+        "Sec-Ch-Ua-Wow64",
+        "Sec-Ch-Viewport-Height",
+        "Sec-Ch-Viewport-Width",
+        "Sec-Fetch-Dest",
+        "Sec-Fetch-Mode",
+        "Sec-Fetch-Site",
+        "Sec-Fetch-User",
+        "Upgrade-Insecure-Requests",
+        "User-Agent",
+        "Viewport-Width"
+      ],
+      "header_source": "go net/http (order NOT preserved)",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+        },
+        {
+          "name": "Accept-Encoding",
+          "value": "gzip, deflate, br, zstd"
+        },
+        {
+          "name": "Accept-Language",
+          "value": "en-US,en;q=0.9"
+        },
+        {
+          "name": "Device-Memory",
+          "value": "16"
+        },
+        {
+          "name": "Downlink",
+          "value": "1.55"
+        },
+        {
+          "name": "Dpr",
+          "value": "1"
+        },
+        {
+          "name": "Ect",
+          "value": "4g"
+        },
+        {
+          "name": "Priority",
+          "value": "u=0, i"
+        },
+        {
+          "name": "Rtt",
+          "value": "0"
+        },
+        {
+          "name": "Sec-Ch-Device-Memory",
+          "value": "16"
+        },
+        {
+          "name": "Sec-Ch-Dpr",
+          "value": "1"
+        },
+        {
+          "name": "Sec-Ch-Prefers-Color-Scheme",
+          "value": "light"
+        },
+        {
+          "name": "Sec-Ch-Prefers-Reduced-Motion",
+          "value": "no-preference"
+        },
+        {
+          "name": "Sec-Ch-Prefers-Reduced-Transparency",
+          "value": "no-preference"
+        },
+        {
+          "name": "Sec-Ch-Ua",
+          "value": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Arch",
+          "value": "\"x86\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Bitness",
+          "value": "\"64\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Form-Factors",
+          "value": "\"Desktop\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Full-Version",
+          "value": "\"153.0.8010.12\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Full-Version-List",
+          "value": "\"Chromium\";v=\"153.0.8010.12\", \"Not_A Brand\";v=\"8.0.0.0\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Mobile",
+          "value": "?0"
+        },
+        {
+          "name": "Sec-Ch-Ua-Model",
+          "value": "\"\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Platform",
+          "value": "\"Linux\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Platform-Version",
+          "value": "\"\""
+        },
+        {
+          "name": "Sec-Ch-Ua-Wow64",
+          "value": "?0"
+        },
+        {
+          "name": "Sec-Ch-Viewport-Height",
+          "value": "437"
+        },
+        {
+          "name": "Sec-Ch-Viewport-Width",
+          "value": "780"
+        },
+        {
+          "name": "Sec-Fetch-Dest",
+          "value": "document"
+        },
+        {
+          "name": "Sec-Fetch-Mode",
+          "value": "navigate"
+        },
+        {
+          "name": "Sec-Fetch-Site",
+          "value": "none"
+        },
+        {
+          "name": "Sec-Fetch-User",
+          "value": "?1"
+        },
+        {
+          "name": "Upgrade-Insecure-Requests",
+          "value": "1"
+        },
+        {
+          "name": "User-Agent",
+          "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "name": "Viewport-Width",
+          "value": "780"
+        }
+      ],
+      "host": "127.0.0.1:18443",
+      "ja4h": "",
+      "ja4h_r": "unavailable: header order not observable on this transport",
+      "method": "GET",
+      "path": "/?mode=store&label=chrome-153-h3",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "version": "HTTP/3.0"
+    },
+    "ja4": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+    "protocol": "h3",
+    "same_connection_as_submit": true
+  },
+  "network": {
+    "connection_age_ms": 3589,
+    "connection_id": 5,
+    "ip": "127.0.0.1",
+    "port": "48058",
+    "protocol": "h3",
+    "remote_addr": "127.0.0.1:48058",
+    "request_number_on_connection": 9,
+    "tls_handshake_ms": 10.696
+  },
+  "permalink": "https://127.0.0.1:18443/f/6UxqRahRYshS",
+  "summary": {
+    "browser_hash": "20b24b8f44609e8572058626371fa289",
+    "combined_hash": "981088c51dca8a7bad01dfc7108bd81c",
+    "fingerprintjs_visitor_id": "31b4f88f4eb04c4ae918bd669e3dca93",
+    "ip": "127.0.0.1",
+    "ja3_hash": "890de31d04d97c4a41d14ea63a988bea",
+    "ja4": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+    "ja4_quic": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+    "peetprint_hash": "70fed7a0711b35508e95f63d5823a527",
+    "protocol": "h3",
+    "suspicion_score": 80,
+    "thumbmark": "e25aa1ab34ef7faccb9b108fe0d116ba",
+    "tls_version": "TLS 1.3",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+  },
+  "timing": {
+    "connection_age_ms": 3589.795,
+    "handshake_total_ms": 10.696,
+    "navigation_to_submit_ms": 3565.318,
+    "quic_min_rtt_ms": 0.122,
+    "quic_smoothed_rtt_ms": 0.714,
+    "request_number_on_connection": 9,
+    "server_time_unix_ms": 1793749984637.817
+  },
+  "tls": {
+    "client_hello": {
+      "alpn": [
+        "h3"
+      ],
+      "alps": [
+        "h3"
+      ],
+      "cert_compression": [
+        {
+          "hex": "0x0002",
+          "id": 2,
+          "name": "brotli"
+        }
+      ],
+      "cipher_suites": [
+        {
+          "hex": "0x1301",
+          "id": 4865,
+          "name": "TLS_AES_128_GCM_SHA256"
+        },
+        {
+          "hex": "0x1302",
+          "id": 4866,
+          "name": "TLS_AES_256_GCM_SHA384"
+        },
+        {
+          "hex": "0x1303",
+          "id": 4867,
+          "name": "TLS_CHACHA20_POLY1305_SHA256"
+        }
+      ],
+      "client_random": "9e043b2baa71bc55ffe449da62f87536a475ced5d5324dd1bbf731f8413d90f2",
+      "compression_methods": "AA==",
+      "early_data": false,
+      "encrypted_client_hello": false,
+      "extension_order": [
+        17613,
+        51,
+        57,
+        43,
+        45,
+        4832,
+        27,
+        13,
+        16,
+        51764,
+        10,
+        41
+      ],
+      "extension_order_names": [
+        "application_settings",
+        "key_share",
+        "quic_transport_parameters",
+        "supported_versions",
+        "psk_key_exchange_modes",
+        "unknown(0x12e0)",
+        "compress_certificate",
+        "signature_algorithms",
+        "application_layer_protocol_negotiation",
+        "unknown(0xca34)",
+        "supported_groups",
+        "pre_shared_key"
+      ],
+      "extensions": [
+        {
+          "data": [
+            "h3"
+          ],
+          "hex": "0003026833",
+          "id": 17613,
+          "length": 5,
+          "name": "application_settings"
+        },
+        {
+          "data": [
+            {
+              "group": 4588,
+              "key_length": 1216,
+              "name": "X25519MLKEM768"
+            },
+            {
+              "group": 29,
+              "key_length": 32,
+              "name": "x25519"
+            }
+          ],
+          "hex": "04e811ec04c078c2ba8d49ac3cdc0a74cb633f273b70c2802666646cd612092400cb2864df345df7e55ad3e8adc9607bc85a465d8aabcfe059b3737b02db1b328018635a051ee4351b8c35c5fc0b5cb11cee515c9cf0c1d3e62a213875397895eea42e8cd8ab4ee97635c4271880539139cd9eca34b3566907f3204600a24a2007b893ca5f7661b875a708d700f75c40ad3baba6c46c31f08e1648497bd9284ae9b5e4b39e6173b76e6c61d20b8fecd5c4acf602dfe462e3f008e5d98d12db1bcc7c7817aa76c54bb671e615be88aa6a032b12c18161f9b2be473208b40f3e364fba5b8f435c5a808b338ff71894670103330fecd3ab1a63487c42a60c7a207682102a00be3a9097f24814456994bcf7ac9bc9161b622caf80ce9ea6452aa6730761bbf7d844bfb82f56324dfd1159d40b2af31b8b6f8c921cd3527e665d5266ce7a056bece97fa2a871a534c18aa31b7c654e86cc104bb159fd54ae02fb5acf2c0ffd0ac06c7ca4827b3c718c6a7f1b59f5fc73dd56120dbabc9d034d0f377c390c479e0536396aa0e717b0699c2945d529a05b7c9d45c150c8c22f94b486431209901e2da4872dc7c84a0a1a9f606ae894a479832493f1babe9a121bb05b5d572fe2b282d75b45c3aa0261511fd12c2f258ac7640581162073f8874840c04f7cf56e5a396ea3f974c7a61b62766482d60e66f88da5cc40e7bca05641b8ef0270ab270a14d34777076206516fec2990b4e59f2cd41691acc73d7b81b1b44be29953d5b4b0b8a0914906693583bcd920a477b009bd50378d5b65aeb185bdcca29e255c0bc46176b6690c65886f0085d8c671daf1cefa8b6536182659b1b9b090a795941673b5588fa7911e2678abf9a3c7d53aae91cc1fdb3c0a6029634927ba71bd873a867a95bf3edb113cab22144436cab329871658415822d783bd06379c95f856d22913fac66798fc1919459d826687f72ccddb243e303ca64e414e6083b900e8a8623430ace8c4935cb699248882846d211516a201350ce6cba911667eab8c93ec358b59c588dcb5b2e84f1e1cc73f0324e615169353161fc0997421cef729753f2c1f279736fd4b59000a08146b86c54042df042199988e0fec5733284836f72815c6a3ff3b4fad4a2f26077febd10ed874be2f37a20f50369db55dc0f1a25b5c89074034f3534015e6977714272ec40fbf740c6c4021f06bca7c31c965635e830237650055c6f17be3b1747011c411c8c3f47914b1058a05830e3d314f744ba0c311cf89c9adb1680a272bac5ebc4b9339802e52be8d5b92ca80429531cb5b436890227ab3410197a63f4a3958a4087441fb2b7a47719cbc2c810aab46a03e0f0046a5d059e3c700b16550ad05109c247caa556014476f0fa483240bca429825a078a51ce326a63982df98554c30b7afd66794d86bc378196a5c0242",
+          "id": 51,
+          "length": 1258,
+          "name": "key_share"
+        },
+        {
+          "data": [
+            {
+              "id": 1,
+              "name": "max_idle_timeout",
+              "value": 300000
+            },
+            {
+              "id": 5,
+              "name": "initial_max_stream_data_bidi_local",
+              "value": 6291456
+            },
+            {
+              "id": 7,
+              "name": "initial_max_stream_data_uni",
+              "value": 6291456
+            },
+            {
+              "id": 12583,
+              "name": "initial_rtt",
+              "value": 1353
+            },
+            {
+              "id": 32,
+              "name": "max_datagram_frame_size",
+              "value": 65536
+            },
+            {
+              "id": 8,
+              "name": "initial_max_streams_bidi",
+              "value": 100
+            },
+            {
+              "id": 3,
+              "name": "max_udp_payload_size",
+              "value": 1472
+            },
+            {
+              "grease": true,
+              "id": 2679411102418797903,
+              "name": "GREASE",
+              "value": 10
+            },
+            {
+              "id": 9,
+              "name": "initial_max_streams_uni",
+              "value": 103
+            },
+            {
+              "id": 17,
+              "name": "version_information",
+              "value": "00000001000000010a3a9a0a"
+            },
+            {
+              "id": 6,
+              "name": "initial_max_stream_data_bidi_remote",
+              "value": 6291456
+            },
+            {
+              "id": 4,
+              "name": "initial_max_data",
+              "value": 15728640
+            },
+            {
+              "id": 12584,
+              "name": "google_connection_options",
+              "value": "4f5249474e4f4950"
+            },
+            {
+              "id": 15,
+              "name": "initial_source_connection_id",
+              "value": true
+            }
+          ],
+          "hex": "0104800493e0050480600000070480600000712702454920048001000008024064030245c0e52f2e3396e9054f0ade4ef44b10617ad5ff2d09024067110c00000001000000010a3a9a0a060480600000040480f000007128084f5249474e4f49500f00",
+          "id": 57,
+          "length": 99,
+          "name": "quic_transport_parameters"
+        },
+        {
+          "data": [
+            {
+              "hex": "0x0304",
+              "id": 772,
+              "name": "TLS 1.3"
+            }
+          ],
+          "hex": "020304",
+          "id": 43,
+          "length": 3,
+          "name": "supported_versions"
+        },
+        {
+          "data": [
+            "psk_dhe_ke"
+          ],
+          "hex": "0101",
+          "id": 45,
+          "length": 2,
+          "name": "psk_key_exchange_modes"
+        },
+        {
+          "hex": "0000",
+          "id": 4832,
+          "length": 2,
+          "name": "unknown(0x12e0)"
+        },
+        {
+          "data": [
+            {
+              "hex": "0x0002",
+              "id": 2,
+              "name": "brotli"
+            }
+          ],
+          "hex": "020002",
+          "id": 27,
+          "length": 3,
+          "name": "compress_certificate"
+        },
+        {
+          "data": [
+            {
+              "hex": "0x0403",
+              "id": 1027,
+              "name": "ecdsa_secp256r1_sha256"
+            },
+            {
+              "hex": "0x0804",
+              "id": 2052,
+              "name": "rsa_pss_rsae_sha256"
+            },
+            {
+              "hex": "0x0401",
+              "id": 1025,
+              "name": "rsa_pkcs1_sha256"
+            },
+            {
+              "hex": "0x0503",
+              "id": 1283,
+              "name": "ecdsa_secp384r1_sha384"
+            },
+            {
+              "hex": "0x0805",
+              "id": 2053,
+              "name": "rsa_pss_rsae_sha384"
+            },
+            {
+              "hex": "0x0501",
+              "id": 1281,
+              "name": "rsa_pkcs1_sha384"
+            },
+            {
+              "hex": "0x0806",
+              "id": 2054,
+              "name": "rsa_pss_rsae_sha512"
+            },
+            {
+              "hex": "0x0601",
+              "id": 1537,
+              "name": "rsa_pkcs1_sha512"
+            },
+            {
+              "hex": "0x0201",
+              "id": 513,
+              "name": "rsa_pkcs1_sha1"
+            }
+          ],
+          "hex": "0012040308040401050308050501080606010201",
+          "id": 13,
+          "length": 20,
+          "name": "signature_algorithms"
+        },
+        {
+          "data": [
+            "h3"
+          ],
+          "hex": "0003026833",
+          "id": 16,
+          "length": 5,
+          "name": "application_layer_protocol_negotiation"
+        },
+        {
+          "hex": "00b808839a648c9b2d010d04d679090c08839a648c9b2d010a04d679090b0582df1302010582df13020e08839a648c9b2d01070582df13020d08839a648c9b2d010b04d679090504d67909080582df13021404d679090a04d679090708839a648c9b2d011204d67909010582df13021308839a648c9b2d010804d679090d08839a648c9b2d011304d679090f0582df13020604d67909040582df13020f04d679090608839a648c9b2d010c0582df13021208839a648c9b2d0109",
+          "id": 51764,
+          "length": 186,
+          "name": "unknown(0xca34)"
+        },
+        {
+          "data": [
+            {
+              "hex": "0x11ec",
+              "id": 4588,
+              "name": "X25519MLKEM768"
+            },
+            {
+              "hex": "0x001d",
+              "id": 29,
+              "name": "x25519"
+            },
+            {
+              "hex": "0x0017",
+              "id": 23,
+              "name": "secp256r1"
+            },
+            {
+              "hex": "0x0018",
+              "id": 24,
+              "name": "secp384r1"
+            }
+          ],
+          "hex": "000811ec001d00170018",
+          "id": 10,
+          "length": 10,
+          "name": "supported_groups"
+        },
+        {
+          "data": {
+            "identities": 1
+          },
+          "hex": "009f0099bf23fb95e2eeff60e932d72b420f896e53a85e0d371864c80b3d68f14f553901063babf363e1324a8cec159841bb3acb6dafab1bbe81bbcabe71d429bf492e400fec431860022355fb07fc0491b7f73fe2c61fd93211d4a2ace4fa5787222f3f5600af2317846b77451d85bd6ba7fd66a7cb65046887cef003271d7a3e5d11e20d381713cfcf5b1d086dae19a396b8e3870f42efd6d0681362c57132550021202ee9e12be64125d4aa248ad993a6dd7494332b34db818b5bf6f086c82f403bf5",
+          "id": 41,
+          "length": 196,
+          "name": "pre_shared_key"
+        }
+      ],
+      "handshake_length": 1888,
+      "key_share_groups": [
+        {
+          "hex": "0x11ec",
+          "id": 4588,
+          "name": "X25519MLKEM768"
+        },
+        {
+          "hex": "0x001d",
+          "id": 29,
+          "name": "x25519"
+        }
+      ],
+      "legacy_version": "TLS 1.2",
+      "pre_shared_key": true,
+      "psk_identities": 1,
+      "psk_key_exchange_modes": "AQ==",
+      "quic_transport_parameters": [
+        {
+          "id": 1,
+          "name": "max_idle_timeout",
+          "value": 300000
+        },
+        {
+          "id": 5,
+          "name": "initial_max_stream_data_bidi_local",
+          "value": 6291456
+        },
+        {
+          "id": 7,
+          "name": "initial_max_stream_data_uni",
+          "value": 6291456
+        },
+        {
+          "id": 12583,
+          "name": "initial_rtt",
+          "value": 1353
+        },
+        {
+          "id": 32,
+          "name": "max_datagram_frame_size",
+          "value": 65536
+        },
+        {
+          "id": 8,
+          "name": "initial_max_streams_bidi",
+          "value": 100
+        },
+        {
+          "id": 3,
+          "name": "max_udp_payload_size",
+          "value": 1472
+        },
+        {
+          "grease": true,
+          "id": 2679411102418797903,
+          "name": "GREASE",
+          "value": 10
+        },
+        {
+          "id": 9,
+          "name": "initial_max_streams_uni",
+          "value": 103
+        },
+        {
+          "id": 17,
+          "name": "version_information",
+          "value": "00000001000000010a3a9a0a"
+        },
+        {
+          "id": 6,
+          "name": "initial_max_stream_data_bidi_remote",
+          "value": 6291456
+        },
+        {
+          "id": 4,
+          "name": "initial_max_data",
+          "value": 15728640
+        },
+        {
+          "id": 12584,
+          "name": "google_connection_options",
+          "value": "4f5249474e4f4950"
+        },
+        {
+          "id": 15,
+          "name": "initial_source_connection_id",
+          "value": true
+        }
+      ],
+      "raw_hex": "0100075c03039e043b2baa71bc55ffe449da62f87536a475ced5d5324dd1bbf731f8413d90f20000061301130213030100072d44cd00050003026833003304ea04e811ec04c078c2ba8d49ac3cdc0a74cb633f273b70c2802666646cd612092400cb2864df345df7e55ad3e8adc9607bc85a465d8aabcfe059b3737b02db1b328018635a051ee4351b8c35c5fc0b5cb11cee515c9cf0c1d3e62a213875397895eea42e8cd8ab4ee97635c4271880539139cd9eca34b3566907f3204600a24a2007b893ca5f7661b875a708d700f75c40ad3baba6c46c31f08e1648497bd9284ae9b5e4b39e6173b76e6c61d20b8fecd5c4acf602dfe462e3f008e5d98d12db1bcc7c7817aa76c54bb671e615be88aa6a032b12c18161f9b2be473208b40f3e364fba5b8f435c5a808b338ff71894670103330fecd3ab1a63487c42a60c7a207682102a00be3a9097f24814456994bcf7ac9bc9161b622caf80ce9ea6452aa6730761bbf7d844bfb82f56324dfd1159d40b2af31b8b6f8c921cd3527e665d5266ce7a056bece97fa2a871a534c18aa31b7c654e86cc104bb159fd54ae02fb5acf2c0ffd0ac06c7ca4827b3c718c6a7f1b59f5fc73dd56120dbabc9d034d0f377c390c479e0536396aa0e717b0699c2945d529a05b7c9d45c150c8c22f94b486431209901e2da4872dc7c84a0a1a9f606ae894a479832493f1babe9a121bb05b5d572fe2b282d75b45c3aa0261511fd12c2f258ac7640581162073f8874840c04f7cf56e5a396ea3f974c7a61b62766482d60e66f88da5cc40e7bca05641b8ef0270ab270a14d34777076206516fec2990b4e59f2cd41691acc73d7b81b1b44be29953d5b4b0b8a0914906693583bcd920a477b009bd50378d5b65aeb185bdcca29e255c0bc46176b6690c65886f0085d8c671daf1cefa8b6536182659b1b9b090a795941673b5588fa7911e2678abf9a3c7d53aae91cc1fdb3c0a6029634927ba71bd873a867a95bf3edb113cab22144436cab329871658415822d783bd06379c95f856d22913fac66798fc1919459d826687f72ccddb243e303ca64e414e6083b900e8a8623430ace8c4935cb699248882846d211516a201350ce6cba911667eab8c93ec358b59c588dcb5b2e84f1e1cc73f0324e615169353161fc0997421cef729753f2c1f279736fd4b59000a08146b86c54042df042199988e0fec5733284836f72815c6a3ff3b4fad4a2f26077febd10ed874be2f37a20f50369db55dc0f1a25b5c89074034f3534015e6977714272ec40fbf740c6c4021f06bca7c31c965635e830237650055c6f17be3b1747011c411c8c3f47914b1058a05830e3d314f744ba0c311cf89c9adb1680a272bac5ebc4b9339802e52be8d5b92ca80429531cb5b436890227ab3410197a63f4a3958a4087441fb2b7a47719cbc2c810aab46a03e0f0046a5d059e3c700b16550ad05109c247caa556014476f0fa483240bca429825a078a51ce326a63982df98554c30b7afd66794d86bc378196a5c0242c147007a7371b92b1857a1c5e46ec0b076b9844eec42bf0b4314027c113e2ace47d4a2a9e58dcfd2a65c78a1d268447b1c45b8553994404ffbd13e20fc5d6cb59047c2236ed62ceaf410f9424d0db771ac768d0feb60bd403e776405678988649b52ef07646c2b91248553511593e905bacc3a4c1fa16d3f56733e94cec7cc028468744fb490b84667df07aafc039011c14b1499ee60ce7e449dcd47c44e425bf2f8e90b285668c664b3d6972cb35999fee09357cd81132333bd1882864e741ed7d380f6ea4f001d002074a948fb7339e85b1d0b619bd7ef4aa9c6b6544bc33d88de1ea4246cb91df169003900630104800493e0050480600000070480600000712702454920048001000008024064030245c0e52f2e3396e9054f0ade4ef44b10617ad5ff2d09024067110c00000001000000010a3a9a0a060480600000040480f000007128084f5249474e4f49500f00002b0003020304002d0002010112e000020000001b0003020002000d00140012040308040401050308050501080606010201001000050003026833ca3400ba00b808839a648c9b2d010d04d679090c08839a648c9b2d010a04d679090b0582df1302010582df13020e08839a648c9b2d01070582df13020d08839a648c9b2d010b04d679090504d67909080582df13021404d679090a04d679090708839a648c9b2d011204d67909010582df13021308839a648c9b2d010804d679090d08839a648c9b2d011304d679090f0582df13020604d67909040582df13020f04d679090608839a648c9b2d010c0582df13021208839a648c9b2d0109000a000a000811ec001d00170018002900c4009f0099bf23fb95e2eeff60e932d72b420f896e53a85e0d371864c80b3d68f14f553901063babf363e1324a8cec159841bb3acb6dafab1bbe81bbcabe71d429bf492e400fec431860022355fb07fc0491b7f73fe2c61fd93211d4a2ace4fa5787222f3f5600af2317846b77451d85bd6ba7fd66a7cb65046887cef003271d7a3e5d11e20d381713cfcf5b1d086dae19a396b8e3870f42efd6d0681362c57132550021202ee9e12be64125d4aa248ad993a6dd7494332b34db818b5bf6f086c82f403bf5",
+      "record_version": "unknown(0x0000)",
+      "session_id_length": 0,
+      "signature_algorithms": [
+        {
+          "hex": "0x0403",
+          "id": 1027,
+          "name": "ecdsa_secp256r1_sha256"
+        },
+        {
+          "hex": "0x0804",
+          "id": 2052,
+          "name": "rsa_pss_rsae_sha256"
+        },
+        {
+          "hex": "0x0401",
+          "id": 1025,
+          "name": "rsa_pkcs1_sha256"
+        },
+        {
+          "hex": "0x0503",
+          "id": 1283,
+          "name": "ecdsa_secp384r1_sha384"
+        },
+        {
+          "hex": "0x0805",
+          "id": 2053,
+          "name": "rsa_pss_rsae_sha384"
+        },
+        {
+          "hex": "0x0501",
+          "id": 1281,
+          "name": "rsa_pkcs1_sha384"
+        },
+        {
+          "hex": "0x0806",
+          "id": 2054,
+          "name": "rsa_pss_rsae_sha512"
+        },
+        {
+          "hex": "0x0601",
+          "id": 1537,
+          "name": "rsa_pkcs1_sha512"
+        },
+        {
+          "hex": "0x0201",
+          "id": 513,
+          "name": "rsa_pkcs1_sha1"
+        }
+      ],
+      "supported_groups": [
+        {
+          "hex": "0x11ec",
+          "id": 4588,
+          "name": "X25519MLKEM768"
+        },
+        {
+          "hex": "0x001d",
+          "id": 29,
+          "name": "x25519"
+        },
+        {
+          "hex": "0x0017",
+          "id": 23,
+          "name": "secp256r1"
+        },
+        {
+          "hex": "0x0018",
+          "id": 24,
+          "name": "secp384r1"
+        }
+      ],
+      "supported_versions": [
+        "TLS 1.3"
+      ],
+      "uses_grease": false
+    },
+    "ja3": "771,4865-4866-4867,17613-51-57-43-45-4832-27-13-16-51764-10-41,4588-29-23-24,",
+    "ja3_hash": "890de31d04d97c4a41d14ea63a988bea",
+    "ja3n": "771,4865-4866-4867,10-13-16-27-41-43-45-51-57-4832-17613-51764,4588-29-23-24,",
+    "ja3n_hash": "983903d184d7fdfa3525037212f36868",
+    "ja4": "q13i0312h3_55b375c5d22e_b1ea0fbf605d",
+    "ja4_o": "q13i0312h3_55b375c5d22e_3ad45d1fa588",
+    "ja4_r": "q13i0312h3_1301,1302,1303_000a,000d,001b,0029,002b,002d,0033,0039,12e0,44cd,ca34_0403,0804,0401,0503,0805,0501,0806,0601,0201",
+    "ja4_ro": "q13i0312h3_1301,1302,1303_44cd,0033,0039,002b,002d,12e0,001b,000d,0010,ca34,000a,0029_0403,0804,0401,0503,0805,0501,0806,0601,0201",
+    "negotiated": {
+      "alpn": "h3",
+      "cipher_suite": "TLS_AES_128_GCM_SHA256",
+      "ech_accepted": false,
+      "key_exchange_group": "X25519MLKEM768",
+      "resumed": true,
+      "server_name": "",
+      "version": "TLS 1.3"
+    },
+    "peetprint": "772|h3|4588-29-23-24|1027-2052-1025-1283-2053-1281-2054-1537-513|1|2|4865-4866-4867|10-13-16-27-41-43-45-51-57-4832-17613-51764",
+    "peetprint_hash": "70fed7a0711b35508e95f63d5823a527"
+  }
+}

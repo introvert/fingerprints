@@ -153,3 +153,15 @@ func TestIsGREASE(t *testing.T) {
 		}
 	}
 }
+
+func TestComplete(t *testing.T) {
+	raw := buildHello([]uint16{0x1301}, [][2]any{{uint16(0x002b), []byte{2, 3, 4}}})
+	for i := 0; i < len(raw); i++ {
+		if Complete(raw[:i]) {
+			t.Fatalf("complete at %d of %d", i, len(raw))
+		}
+	}
+	if !Complete(raw) {
+		t.Fatal("full hello not complete")
+	}
+}

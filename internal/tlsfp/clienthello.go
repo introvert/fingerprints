@@ -684,3 +684,29 @@ func (r *reader) vec16() ([]byte, bool) {
 	}
 	return r.bytes(int(n))
 }
+
+// Complete reports whether raw holds the whole ClientHello without parsing
+// it (it only walks record headers), so it is cheap to call on every read.
+func Complete(raw []byte) bool {
+	var head [4]byte
+	got, total := 0, 0
+	for p := raw; len(p) >= 5; {
+		n := int(p[3])<<8 | int(p[4])
+		if p[0] != 0x16 {
+			return true // not a handshake: let Parse report the error
+		}
+		if len(p) < 5+n {
+			return false
+		}
+		for i := 0; i < n && got < 4; i++ {
+			head[got] = p[5+i]
+			got++
+		}
+		total += n
+		if got == 4 && total >= 4+(int(head[1])<<16|int(head[2])<<8|int(head[3])) {
+			return true
+		}
+		p = p[5+n:]
+	}
+	return false
+}

@@ -81,7 +81,6 @@
       width: s.width, height: s.height, availWidth: s.availWidth, availHeight: s.availHeight,
       availLeft: s.availLeft, availTop: s.availTop, colorDepth: s.colorDepth, pixelDepth: s.pixelDepth,
       devicePixelRatio: global.devicePixelRatio, isExtended: s.isExtended,
-      orientation: safe(() => ({ type: s.orientation.type, angle: s.orientation.angle })),
       // screen frame: OS taskbar/dock size
       frame: [s.availTop, s.width - s.availWidth - (s.availLeft || 0), s.height - s.availHeight - (s.availTop || 0), s.availLeft],
     };
@@ -89,7 +88,7 @@
 
   C.window = () => ({
     innerWidth: innerWidth, innerHeight: innerHeight, outerWidth: outerWidth, outerHeight: outerHeight,
-    screenX: global.screenX, screenY: global.screenY, visualViewport: safe(() => ({ w: visualViewport.width, h: visualViewport.height, scale: visualViewport.scale })),
+    screenX: global.screenX, screenY: global.screenY, orientation: safe(() => ({ type: screen.orientation.type, angle: screen.orientation.angle })), visualViewport: safe(() => ({ w: visualViewport.width, h: visualViewport.height, scale: visualViewport.scale })),
     historyLength: history.length, isSecureContext: global.isSecureContext, crossOriginIsolated: global.crossOriginIsolated,
     inIframe: safe(() => global.self !== global.top, true), opener: !!global.opener,
     globalsCount: safe(() => Object.getOwnPropertyNames(global).length),
@@ -112,7 +111,7 @@
     const jan = new Date(2024, 0, 1).getTimezoneOffset(), jul = new Date(2024, 6, 1).getTimezoneOffset();
     const sv = (k) => safe(() => Intl.supportedValuesOf(k).length);
     return {
-      timezone: dtf.timeZone, timezoneOffset: new Date().getTimezoneOffset(), offsets: [jan, jul],
+      timezone: dtf.timeZone, offsets: [jan, jul], // current offset omitted: it flips at DST
       locale: dtf.locale, calendar: dtf.calendar, numberingSystem: dtf.numberingSystem, hourCycle: safe(() => new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hourCycle),
       numberFormat: safe(() => Intl.NumberFormat().resolvedOptions().locale),
       collator: safe(() => Intl.Collator().resolvedOptions().locale),
@@ -144,7 +143,6 @@
     hover: pick('hover', ['hover', 'none']), anyHover: pick('any-hover', ['hover', 'none']),
     displayMode: pick('display-mode', ['fullscreen', 'standalone', 'minimal-ui', 'browser']),
     update: pick('update', ['fast', 'slow', 'none']), scripting: pick('scripting', ['enabled', 'initial-only', 'none']),
-    orientation: pick('orientation', ['portrait', 'landscape']),
   });
 
   // --- canvas ---
@@ -311,9 +309,19 @@
     const AC = global.AudioContext || global.webkitAudioContext;
     if (AC) {
       const ac = new AC();
-      Object.assign(out, { sampleRate: ac.sampleRate, baseLatency: ac.baseLatency, outputLatency: ac.outputLatency, maxChannelCount: ac.destination.maxChannelCount, channelCountMode: ac.destination.channelCountMode, state: ac.state });
+      Object.assign(out, { sampleRate: ac.sampleRate, maxChannelCount: ac.destination.maxChannelCount, channelCountMode: ac.destination.channelCountMode });
       safe(() => ac.close());
     }
+    return out;
+  };
+
+  // Latency/state depend on autoplay policy and user gestures: kept out of the stable hash.
+  C.audioContext = () => {
+    const AC = global.AudioContext || global.webkitAudioContext;
+    if (!AC) return { supported: false };
+    const ac = new AC();
+    const out = { supported: true, state: ac.state, baseLatency: ac.baseLatency, outputLatency: ac.outputLatency };
+    safe(() => ac.close());
     return out;
   };
 
@@ -564,14 +572,18 @@
     // ICE candidates: reveal local (mDNS) and public (srflx) addresses.
     const pc = new PC({ iceServers: [{ urls: opts.stun || 'stun:stun.l.google.com:19302' }] });
     const cands = [];
-    pc.createDataChannel('fp');
-    await pc.setLocalDescription(await pc.createOffer());
-    await withTimeout(new Promise((res) => {
-      pc.onicecandidate = (e) => { if (!e.candidate) res(); else cands.push(e.candidate.candidate); };
-      pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') res(); };
-    }), 3000).catch(() => {});
-    const sdp = pc.localDescription ? pc.localDescription.sdp : '';
-    pc.close();
+    let sdp = '';
+    try {
+      pc.createDataChannel('fp');
+      await pc.setLocalDescription(await pc.createOffer());
+      await withTimeout(new Promise((res) => {
+        pc.onicecandidate = (e) => { if (!e.candidate) res(); else cands.push(e.candidate.candidate); };
+        pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') res(); };
+      }), 3000).catch(() => {});
+      sdp = pc.localDescription ? pc.localDescription.sdp : '';
+    } finally {
+      pc.close();
+    }
     const parsed = cands.map((c) => { const p = c.split(' '); return { protocol: p[2], address: p[4], port: p[5], type: p[7] }; });
     out.candidates = parsed;
     out.publicIPs = [...new Set(parsed.filter((c) => c.type === 'srflx').map((c) => c.address))];
@@ -606,6 +618,8 @@
       navigationType: safe(() => performance.getEntriesByType('navigation')[0].type),
       nextHopProtocol: safe(() => performance.getEntriesByType('navigation')[0].nextHopProtocol),
       memory: safe(() => ({ jsHeapSizeLimit: performance.memory.jsHeapSizeLimit })),
+      // depends on JIT tier-up timing, so it lives in this volatile component
+      maxCallStack: (() => { let d = 0; const f = () => { d++; f(); }; try { f(); } catch (e) { /* overflow */ } return d; })(),
     };
   };
 
@@ -618,9 +632,9 @@ postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,la
     let url;
     try { url = URL.createObjectURL(new Blob([src], { type: 'application/javascript' })); } catch (e) { return reject(e); }
     const w = new Worker(url);
-    const t = setTimeout(() => { w.terminate(); reject(new Error('worker timeout')); }, 2500);
+    const t = setTimeout(() => { w.terminate(); URL.revokeObjectURL(url); reject(new Error('worker timeout')); }, 2500);
     w.onmessage = (e) => { clearTimeout(t); w.terminate(); URL.revokeObjectURL(url); resolve(e.data); };
-    w.onerror = (e) => { clearTimeout(t); w.terminate(); reject(new Error(e.message || 'worker error')); };
+    w.onerror = (e) => { clearTimeout(t); w.terminate(); URL.revokeObjectURL(url); reject(new Error(e.message || 'worker error')); };
     w.postMessage(1);
   });
 
@@ -772,7 +786,6 @@ postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,la
       cssPropertyNames: safe(() => Object.getOwnPropertyNames(CSSStyleDeclaration.prototype).length), mathProps: count(Math),
       intlProps: count(Intl), webglProps: safe(() => count(WebGLRenderingContext.prototype)), errorProps: count(Error),
       permissionsPolicy: safe(() => (document.featurePolicy || document.permissionsPolicy).allowedFeatures().sort()),
-      maxCallStack: (() => { let d = 0; const f = () => { d++; f(); }; try { f(); } catch (e) { /* overflow */ } return d; })(),
     };
   };
 
@@ -783,13 +796,18 @@ postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,la
     if (navigator.duckduckgo) d.push('duckduckgo');
     const ff = /Firefox\//.test(navigator.userAgent);
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (ff && tz === 'UTC' && new Date().getTimezoneOffset() === 0) d.push('firefox_rfp_timezone');
-    if (ff && innerWidth % 200 === 0 && innerHeight % 100 === 0) d.push('tor_letterboxing_like');
-    if (ff && screen.width === innerWidth && screen.height === innerHeight && !document.fullscreenElement) d.push('firefox_rfp_screen');
-    if (ff && navigator.hardwareConcurrency === 2 && /rv:115|rv:128/.test(navigator.userAgent)) d.push('tor_browser_like');
     const res = safe(() => { const a = performance.now(); let b = a; while (b === a) b = performance.now(); return b - a; }, 0);
+    // A single indicator (e.g. a machine that is really in UTC) is not enough:
+    // resistFingerprinting is reported only when several of its effects coincide.
+    const rfp = [];
+    if (ff && tz === 'UTC') rfp.push('utc');
+    if (ff && screen.width === innerWidth && screen.height === innerHeight && !document.fullscreenElement) rfp.push('screen=window');
+    if (ff && res >= 16) rfp.push('16ms_timers');
+    if (ff && navigator.platform === 'Win32' && !/Windows/.test(navigator.oscpu || 'Windows')) rfp.push('spoofed_platform');
+    if (rfp.length >= 2) d.push('firefox_rfp(' + rfp.join('+') + ')');
+    if (ff && innerWidth % 200 === 0 && innerHeight % 100 === 0 && rfp.length) d.push('tor_letterboxing_like');
     if (res >= 16) d.push('coarse_timers(' + res.toFixed(1) + 'ms)');
-    return { detected: d, timerResolutionMs: res };
+    return { detected: d, timerResolutionMs: +res.toFixed(3) };
   };
 
   // Private / incognito mode heuristics.
@@ -847,7 +865,8 @@ postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,la
   C.latency = async (opts) => {
     const url = opts.pingUrl || '/api/ping';
     const samples = [], skews = [], protos = new Set(), conns = new Set();
-    for (let i = 0; i < (opts.pings || 6); i++) {
+    const n = Math.max(2, opts.pings || 6);
+    for (let i = 0; i < n; i++) {
       const t0 = performance.now(), wall0 = Date.now();
       const r = await withTimeout(fetch(url + '?i=' + i + '&t=' + wall0, { cache: 'no-store' }), 3000);
       const j = await r.json();
@@ -876,8 +895,8 @@ postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,la
     const url = URL.createObjectURL(new Blob([WORKER_PROBE + 'onconnect=(e)=>{const p=e.ports[0];p.postMessage(info());};'], { type: 'application/javascript' }));
     let w;
     try { w = new SharedWorker(url); } catch (e) { return resolve({ supported: true, error: String(e) }); }
-    const t = setTimeout(() => reject(new Error('shared worker timeout')), 2500);
-    w.port.onmessage = (e) => { clearTimeout(t); URL.revokeObjectURL(url); resolve(Object.assign({ supported: true }, e.data)); };
+    const t = setTimeout(() => { w.port.close(); URL.revokeObjectURL(url); reject(new Error('shared worker timeout')); }, 2500);
+    w.port.onmessage = (e) => { clearTimeout(t); w.port.close(); URL.revokeObjectURL(url); resolve(Object.assign({ supported: true }, e.data)); };
     w.port.start();
   });
 
@@ -899,7 +918,7 @@ postMessage({offscreenCanvasHash:cv,userAgent:n.userAgent,platform:n.platform,la
     }
   };
 
-  const ORDER = ['navigator', 'userAgentData', 'screen', 'window', 'document', 'intl', 'mediaQueries', 'canvas', 'emoji', 'domRect', 'svg', 'webgl', 'webgl2', 'webgpu', 'audio', 'fonts', 'fontPreferences', 'math', 'jsEngine', 'features', 'cssSupports', 'codecs', 'speech', 'mediaDevices', 'permissions', 'storage', 'battery', 'connection', 'touch', 'keyboard', 'webrtc', 'gamepads', 'xr', 'applePay', 'timing', 'worker', 'sharedWorker', 'serviceWorker', 'automation', 'tampering', 'domBlockers', 'vendorFlavors', 'privateClickMeasurement', 'systemColors', 'engineSurface', 'resistance', 'privateMode', 'imageFormats', 'navigationTiming', 'latency'];
+  const ORDER = ['navigator', 'userAgentData', 'screen', 'window', 'document', 'intl', 'mediaQueries', 'canvas', 'emoji', 'domRect', 'svg', 'webgl', 'webgl2', 'webgpu', 'audio', 'audioContext', 'fonts', 'fontPreferences', 'math', 'jsEngine', 'features', 'cssSupports', 'codecs', 'speech', 'mediaDevices', 'permissions', 'storage', 'battery', 'connection', 'touch', 'keyboard', 'webrtc', 'gamepads', 'xr', 'applePay', 'timing', 'worker', 'sharedWorker', 'serviceWorker', 'automation', 'tampering', 'domBlockers', 'vendorFlavors', 'privateClickMeasurement', 'systemColors', 'engineSurface', 'resistance', 'privateMode', 'imageFormats', 'navigationTiming', 'latency'];
 
   async function runComponent(name, opts) {
     const t0 = performance.now();

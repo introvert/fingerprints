@@ -87,6 +87,9 @@ func (s *Server) ServeH3(pc net.PacketConn) error {
 							sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 							for _, k := range keys {
 								n := h3SettingNames[k]
+								if k >= 0x21 && (k-0x21)%0x1f == 0 {
+									n = "GREASE_0x" + formatHex(k)
+								}
 								if n == "" {
 									n = "0x" + formatHex(k)
 								}

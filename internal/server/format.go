@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -30,14 +31,14 @@ func format(r *http.Request) string {
 
 func (s *Server) write(w http.ResponseWriter, r *http.Request, status int, v any) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if f := r.URL.Query().Get("fields"); f != "" {
+	if f := r.URL.Query().Get("fields"); f != "" && status < 400 {
 		v = pickFields(v, strings.Split(f, ","))
 	}
 	switch format(r) {
 	case "text", "txt", "plain":
 		raw, _ := json.Marshal(v)
 		var m any
-		json.Unmarshal(raw, &m)
+		decodeNumber(raw, &m)
 		flat := map[string]string{}
 		flatten("", m, flat)
 		keys := make([]string, 0, len(flat))
@@ -62,7 +63,7 @@ func (s *Server) write(w http.ResponseWriter, r *http.Request, status int, v any
 		enc.SetEscapeHTML(false)
 		if raw, ok := v.(json.RawMessage); ok {
 			var x any
-			if json.Unmarshal(raw, &x) == nil {
+			if decodeNumber(raw, &x) == nil {
 				v = x
 			}
 		}
@@ -127,6 +128,8 @@ func scalar(x any) string {
 		return strconv.Quote(t)
 	case float64:
 		return strconv.FormatFloat(t, 'f', -1, 64)
+	case json.Number:
+		return t.String()
 	default:
 		return fmt.Sprint(t)
 	}
@@ -139,7 +142,7 @@ func pickFields(v any, paths []string) any {
 		return v
 	}
 	var src any
-	if json.Unmarshal(raw, &src) != nil {
+	if decodeNumber(raw, &src) != nil {
 		return v
 	}
 	out := map[string]any{}
@@ -176,4 +179,12 @@ func pickFields(v any, paths []string) any {
 		dst[parts[len(parts)-1]] = cur
 	}
 	return out
+}
+
+// decodeNumber decodes JSON keeping numbers exact (QUIC ids and GREASE
+// values exceed 2^53 and would be rounded as float64).
+func decodeNumber(raw []byte, v any) error {
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.UseNumber()
+	return d.Decode(v)
 }

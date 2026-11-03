@@ -180,6 +180,12 @@ func (t *SynTable) put(key string, s *SYN) {
 				delete(t.m, k)
 			}
 		}
+		for k := range t.m { // SYN flood: drop arbitrary entries down to 90%
+			if len(t.m) <= 45000 {
+				break
+			}
+			delete(t.m, k)
+		}
 	}
 }
 

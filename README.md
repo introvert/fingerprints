@@ -68,15 +68,17 @@ Docker: `docker build -t fingerprints . && docker run -p 443:8443 -v fpdata:/dat
 | `GET /api/ping` | Server time, connection id, protocol and TCP/QUIC RTT, used for latency and clock-skew probes |
 | `GET /api/export?limit=` | NDJSON export of stored reports (admin) |
 | `POST /api/fingerprint?mode=echo\|store` | Submit client data (body below) and get the full report back. Stores it when `mode=store` (201 + `Location`) |
-| `GET /api/fingerprint?mode=store` | Store a server-side-only fingerprint (for curl, bots, non-JS clients) |
+| `POST /api/fingerprint?mode=store` (empty body) | Store a server-side-only fingerprint (for curl, bots, non-JS clients). Storing always requires POST so prefetchers and crawlers can't create records |
 | `GET /api/fingerprints/{id}` | Read a stored report |
 | `GET /api/fingerprints/{id}/related` | Other stored reports with the same combined hash, browser hash, FingerprintJS visitorId or JA4 |
-| `GET /api/fingerprints?ja4=&ja3=&http2=&browser_hash=&combined_hash=&visitor_id=&ip=&label=&limit=&before=` | Search the history, newest first, paginated with `before` / `next_before` |
+| `GET /api/fingerprints?ja4=&ja3=&http2=&browser_hash=&combined_hash=&visitor_id=&ip=&label=&limit=&before=` | Search the history, newest first. To paginate, pass the `next_before` value (the last item's id) back as `before` |
 | `GET /api/compare?a={id}&b={id}` | Field-by-field diff of two stored reports. If `b` is omitted, `a` is compared with the current request |
 | `DELETE /api/fingerprints/{id}` | Delete a stored report (requires `-admin-token`) |
 | `GET /api/info` | Server capabilities |
 
 All JSON endpoints accept `?format=json` (pretty, default), `?format=compact` or `?format=text` (also chosen by `Accept: text/plain`). They also accept `?fields=` to select dotted paths, for example `?fields=tls.ja4,http2.akamai_fingerprint,tcp.syn.ja4t,summary`. Permalinks return JSON when requested with `Accept: application/json` or a `.json` suffix (`/f/{id}.json`, `/api/fingerprints/{id}.json`).
+
+Real Chrome and Firefox captures, with a side-by-side table, are in [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
 For a comparison against FingerprintJS, ThumbmarkJS, CreepJS, BrowserLeaks and tls.peet.ws, see [docs/COVERAGE.md](docs/COVERAGE.md).
 

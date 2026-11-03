@@ -167,7 +167,7 @@ type ClientComponent struct {
 var volatileComponents = map[string]bool{
 	"battery": true, "connection": true, "window": true, "document": true, "timing": true,
 	"storage": true, "webrtc": true, "performance": true, "gamepads": true, "mediaDevices": true,
-	"permissions": true, "latency": true, "navigationTiming": true,
+	"permissions": true, "latency": true, "navigationTiming": true, "audioContext": true,
 }
 
 func clientIP(r *http.Request, trustProxy bool) (ip, port string, fwd []string) {
@@ -303,7 +303,13 @@ func (s *Server) serverReport(r *http.Request) *Report {
 	default:
 		rep.HTTP.Casing = "mixed"
 	}
-	rep.HTTP.JA4H, rep.HTTP.JA4HRaw = httpfp.JA4H(r.Method, ver, headers)
+	if strings.HasPrefix(rep.HTTP.HeaderSource, "go net/http") {
+		// wire order unknown (HTTP/3 / unwrapped connection): an order-based
+		// fingerprint would be misleading, so it is left empty.
+		rep.HTTP.JA4H, rep.HTTP.JA4HRaw = "", "unavailable: header order not observable on this transport"
+	} else {
+		rep.HTTP.JA4H, rep.HTTP.JA4HRaw = httpfp.JA4H(r.Method, ver, headers)
+	}
 	for _, h := range clientHintHeaders {
 		if v := r.Header.Get(h); v != "" {
 			if rep.HTTP.ClientHints == nil {
@@ -341,12 +347,14 @@ func (rep *Report) finalize() {
 		}
 		h["quic"] = sha(rep.HTTP3.QUIC.QUICFingerprint)[:16]
 	}
-	if rep.Navigation != nil && rep.Navigation.HTTP != nil {
+	if rep.Navigation != nil && rep.Navigation.HTTP != nil && rep.Navigation.HTTP.JA4H != "" {
 		h["ja4h_navigation"] = rep.Navigation.HTTP.JA4H
 	}
 	if rep.HTTP != nil {
-		h["ja4h"] = rep.HTTP.JA4H
-		h["header_order"] = sha(strings.Join(rep.HTTP.HeaderOrder, ","))[:16]
+		if rep.HTTP.JA4H != "" {
+			h["ja4h"] = rep.HTTP.JA4H
+			h["header_order"] = sha(strings.Join(rep.HTTP.HeaderOrder, ","))[:16]
+		}
 	}
 	if rep.Client != nil && len(rep.Client.Components) > 0 {
 		names := make([]string, 0, len(rep.Client.Components))
@@ -392,7 +400,9 @@ func (rep *Report) finalize() {
 	if rep.HTTP2 != nil {
 		sm["http2_akamai"] = rep.HTTP2.Akamai
 	}
-	sm["ja4h"] = rep.HTTP.JA4H
+	if rep.HTTP.JA4H != "" {
+		sm["ja4h"] = rep.HTTP.JA4H
+	}
 	if rep.TCP != nil && rep.TCP.SYN != nil {
 		sm["ja4t"] = rep.TCP.SYN.JA4T
 		sm["tcp_os_guess"] = rep.TCP.SYN.OSGuess
@@ -403,7 +413,7 @@ func (rep *Report) finalize() {
 	if rep.HTTP3 != nil && rep.HTTP3.QUIC != nil && rep.HTTP3.QUIC.TLS != nil {
 		sm["ja4_quic"] = rep.HTTP3.QUIC.TLS.JA4
 	}
-	if rep.Navigation != nil && rep.Navigation.HTTP != nil {
+	if rep.Navigation != nil && rep.Navigation.HTTP != nil && rep.Navigation.HTTP.JA4H != "" {
 		sm["ja4h_navigation"] = rep.Navigation.HTTP.JA4H
 	}
 	if _, ok := h["browser"]; ok {

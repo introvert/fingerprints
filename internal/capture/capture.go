@@ -125,10 +125,8 @@ func (c *recordConn) Read(p []byte) (int, error) {
 			if t.FirstByte.IsZero() {
 				t.FirstByte = now
 			}
-			if recording && t.ClientHelloDone.IsZero() {
-				if _, perr := tlsfp.Parse(rec); perr == nil {
-					t.ClientHelloDone = now
-				}
+			if recording && t.ClientHelloDone.IsZero() && tlsfp.Complete(rec) {
+				t.ClientHelloDone = now
 			}
 			if wrote && t.ClientFinished.IsZero() {
 				t.ClientFinished = now
@@ -141,7 +139,10 @@ func (c *recordConn) Read(p []byte) (int, error) {
 		}
 		ci.mu.Unlock()
 		if sink != nil {
-			sink.Write(p[:n])
+			func() {
+				defer func() { recover() }() // observation must never break serving
+				sink.Write(p[:n])
+			}()
 		}
 	}
 	return n, err
@@ -242,6 +243,12 @@ func (s *Server) ServeTLS(ln net.Listener) error {
 }
 
 func (s *Server) handleTLS(raw net.Conn) {
+	defer func() {
+		if r := recover(); r != nil {
+			s.logf("capture: recovered panic for %s: %v", raw.RemoteAddr(), r)
+			raw.Close()
+		}
+	}()
 	info := s.newInfo(raw)
 	rc := &recordConn{Conn: raw, recording: true, limit: 64 << 10, info: info, tlsLayer: true}
 	tc := tls.Server(rc, s.TLSConfig)

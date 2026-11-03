@@ -259,7 +259,7 @@ func (t *Tracker) frame(typ, flags byte, sid uint32, payload []byte) {
 		if len(payload) >= 5 {
 			pr := parsePriority(sid, payload)
 			fr.Priority = &pr
-			if t.firstHeaders == nil {
+			if t.firstHeaders == nil && len(t.priorities) < 256 {
 				t.priorities = append(t.priorities, pr)
 			}
 		}
@@ -401,7 +401,7 @@ func (t *Tracker) Fingerprint() *Fingerprint {
 	}
 	var pseudo []string
 	for _, h := range t.firstHeaders.Headers {
-		if strings.HasPrefix(h.Name, ":") {
+		if strings.HasPrefix(h.Name, ":") && len(h.Name) >= 2 {
 			pseudo = append(pseudo, h.Name[1:2])
 		}
 	}

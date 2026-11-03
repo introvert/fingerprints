@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestStore(t *testing.T) {
@@ -38,5 +39,39 @@ func TestStore(t *testing.T) {
 	}
 	if _, err := s.Get(ctx, a.ID); err != ErrNotFound {
 		t.Fatalf("after delete: %v", err)
+	}
+}
+
+func TestPaginationSameMillisecond(t *testing.T) {
+	ctx := context.Background()
+	s, err := Open(filepath.Join(t.TempDir(), "fp.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	now := time.Now()
+	for i := 0; i < 7; i++ { // all in the same millisecond
+		s.Insert(ctx, &Record{Summary: Summary{CreatedAt: now}, Report: json.RawMessage(`{}`)})
+	}
+	seen := map[string]bool{}
+	cursor := ""
+	for page := 0; page < 10; page++ {
+		list, err := s.List(ctx, Filter{Limit: 3, BeforeID: cursor})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, r := range list {
+			if seen[r.ID] {
+				t.Fatalf("duplicate %s", r.ID)
+			}
+			seen[r.ID] = true
+		}
+		if len(list) < 3 {
+			break
+		}
+		cursor = list[len(list)-1].ID
+	}
+	if len(seen) != 7 {
+		t.Fatalf("paginated %d of 7 records", len(seen))
 	}
 }

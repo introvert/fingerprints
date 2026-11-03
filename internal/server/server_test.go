@@ -154,3 +154,57 @@ func TestHTTP1HeaderOrder(t *testing.T) {
 		t.Errorf("protocol = %v", rep["network"])
 	}
 }
+
+func TestAPIEdgeCases(t *testing.T) {
+	base, c := startServer(t)
+	// storing must be POST
+	req, _ := http.NewRequest("GET", base+"/api/fingerprint?mode=store", nil)
+	getJSON(t, c, req, 405)
+	// ?fields must not erase error bodies
+	req, _ = http.NewRequest("GET", base+"/api/fingerprints/nope?fields=tls.ja4", nil)
+	if m := getJSON(t, c, req, 404); m["error"] == nil {
+		t.Errorf("error body lost: %v", m)
+	}
+	// large integers survive the stored-report round trip exactly
+	payload := `{"client":{"components":{"x":{"value":{"big":1111111111111111111}}}}}`
+	req, _ = http.NewRequest("POST", base+"/api/fingerprint?mode=store", bytes.NewBufferString(payload))
+	id := getJSON(t, c, req, 201)["id"].(string)
+	resp, err := c.Get(base + "/api/fingerprints/" + id + "?fields=client.components.x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(b), "1111111111111111111") {
+		t.Errorf("large integer corrupted: %s", b)
+	}
+	// permalink content negotiation
+	req, _ = http.NewRequest("GET", base+"/f/"+id, nil)
+	req.Header.Set("Accept", "application/json")
+	if m := getJSON(t, c, req, 200); m["id"] != id {
+		t.Errorf("permalink json: %v", m["id"])
+	}
+}
+
+func TestPlainHTTPPermalinkScheme(t *testing.T) {
+	st, err := store.Open(filepath.Join(t.TempDir(), "fp.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	srv := &capture.Server{Handler: New(Config{}, st)}
+	go srv.ServePlain(ln)
+	req, _ := http.NewRequest("POST", "http://"+ln.Addr().String()+"/api/fingerprint?mode=store", nil)
+	m := getJSON(t, http.DefaultClient, req, 201)
+	if !strings.HasPrefix(m["permalink"].(string), "http://") {
+		t.Errorf("permalink = %v", m["permalink"])
+	}
+	if tlsInfo := m["tls"].(map[string]any); tlsInfo["note"] == nil {
+		t.Errorf("plain HTTP should carry the no-TLS note: %v", tlsInfo)
+	}
+}

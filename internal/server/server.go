@@ -168,6 +168,11 @@ func (s *Server) handleFingerprint(w http.ResponseWriter, r *http.Request) {
 		s.writeErr(w, r, http.StatusBadRequest, "mode must be echo or store")
 		return
 	}
+	if mode == "store" && r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		s.writeErr(w, r, http.StatusMethodNotAllowed, "storing requires POST (e.g. curl -X POST '.../api/fingerprint?mode=store')")
+		return
+	}
 	rep := s.serverReport(r)
 	rep.Mode = mode
 	rep.Label = r.URL.Query().Get("label")
@@ -236,7 +241,7 @@ func (s *Server) baseURL(r *http.Request) string {
 		return strings.TrimRight(s.cfg.PublicURL, "/")
 	}
 	scheme := "http"
-	if r.TLS != nil || connIsTLS(r) {
+	if (r.TLS != nil && r.TLS.HandshakeComplete) || connIsTLS(r) {
 		scheme = "https"
 	}
 	if s.cfg.TrustProxy {
@@ -338,11 +343,8 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
 	if f.Limit <= 0 || f.Limit > 500 {
 		f.Limit = 50
 	}
-	if b := q.Get("before"); b != "" {
-		if t, err := time.Parse(time.RFC3339Nano, b); err == nil {
-			f.Before = t
-		}
-	}
+	// cursor = id of the last item of the previous page
+	f.BeforeID = q.Get("before")
 	list, err := s.store.List(r.Context(), f)
 	if err != nil {
 		s.writeErr(w, r, http.StatusInternalServerError, err.Error())
@@ -358,8 +360,8 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
 		items[i] = item{sm, base + "/f/" + sm.ID}
 	}
 	resp := map[string]any{"count": len(items), "items": items}
-	if len(list) > 0 && len(list) == max(f.Limit, 1) {
-		resp["next_before"] = list[len(list)-1].CreatedAt.Format(time.RFC3339Nano)
+	if len(list) > 0 && len(list) == f.Limit {
+		resp["next_before"] = list[len(list)-1].ID
 	}
 	s.write(w, r, http.StatusOK, resp)
 }
@@ -396,7 +398,7 @@ func (s *Server) handleCompare(w http.ResponseWriter, r *http.Request) {
 			return nil, fmt.Errorf("%s: %w", id, err)
 		}
 		var m map[string]any
-		return m, json.Unmarshal(rec.Report, &m)
+		return m, decodeNumber(rec.Report, &m)
 	}
 	a, err := load(r.Context(), r.URL.Query().Get("a"))
 	if err != nil {
@@ -413,7 +415,7 @@ func (s *Server) handleCompare(w http.ResponseWriter, r *http.Request) {
 		rep := s.serverReport(r)
 		rep.finalize()
 		raw, _ := json.Marshal(rep)
-		json.Unmarshal(raw, &b)
+		decodeNumber(raw, &b)
 	}
 	// identity, volatile and derived fields are not interesting in a diff
 	skip := []string{"id", "permalink", "api_url", "created_at", "mode", "label", "network.", "analysis.", "summary.", "client.duration_ms", "client.components.timing."}

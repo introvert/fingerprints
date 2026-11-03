@@ -23,12 +23,18 @@ func newNavCache() *navCache { return &navCache{m: map[string]*NavigationInfo{}}
 func (c *navCache) put(k string, v *NavigationInfo) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if len(c.m) > 20000 {
+	if len(c.m) >= 20000 {
 		cut := time.Now().Add(-30 * time.Minute)
 		for k, v := range c.m {
 			if v.At.Before(cut) {
 				delete(c.m, k)
 			}
+		}
+		for k := range c.m { // flood: drop arbitrary entries down to 90%
+			if len(c.m) < 18000 {
+				break
+			}
+			delete(c.m, k)
 		}
 	}
 	c.m[k] = v
