@@ -121,6 +121,7 @@ type HTTP3Info struct {
 type TimingReport struct {
 	ServerTimeMS              float64 `json:"server_time_unix_ms"`
 	ConnectionAgeMS           float64 `json:"connection_age_ms"`
+	TCPHandshakeMS            float64 `json:"tcp_handshake_ms,omitempty"`
 	AcceptToFirstByteMS       float64 `json:"accept_to_first_byte_ms,omitempty"`
 	ClientHelloTransferMS     float64 `json:"client_hello_transfer_ms,omitempty"`
 	ServerHandshakeMS         float64 `json:"server_handshake_processing_ms,omitempty"`
@@ -487,6 +488,10 @@ func (s *Server) fillTransport(rep *Report, ci *capture.ConnInfo) {
 	tm.ConnectionAgeMS = msBetween(ci.AcceptedAt, now)
 	tm.RequestOnConnection = rep.Network.RequestOnConn
 	tm.AcceptToFirstByteMS = msBetween(t.Accepted, t.FirstByte)
+	if ci.SYN != nil {
+		// SYN seen → connection accepted ≈ one network round trip (SYN-ACK out, ACK in)
+		tm.TCPHandshakeMS = msBetween(ci.SYN.CapturedAt, t.Accepted)
+	}
 	tm.ClientHelloTransferMS = msBetween(t.FirstByte, t.ClientHelloDone)
 	tm.ServerHandshakeMS = msBetween(t.ClientHelloDone, t.ServerFlight)
 	tm.TLSRoundTripMS = msBetween(t.ServerFlight, t.ClientFinished)

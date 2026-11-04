@@ -32,6 +32,8 @@ var (
 	reFirefox  = regexp.MustCompile(`Firefox/\d`)
 	reChromium = regexp.MustCompile(`(Chrome|Chromium|CriOS|Edg|OPR|YaBrowser|SamsungBrowser)/\d`)
 	reSafari   = regexp.MustCompile(`Version/[\d.]+.*Safari/`)
+	// software rasterisers and hypervisor display adapters
+	reVirtualGPU = regexp.MustCompile(`(?i)SwiftShader|llvmpipe|softpipe|lavapipe|VMware|VirtualBox|Parallels|Microsoft Basic Render|Apple Paravirtual|VirGL|virtio|QXL|Red Hat|Mesa OffScreen|Hyper-V`)
 )
 
 func uaFamily(ua string) string {
@@ -171,6 +173,18 @@ func analyze(rep *Report) *Analysis {
 		if syn.MSS > 0 && syn.MTUGuess < 1500 && syn.MTUGuess > 0 {
 			add("network_link", "warn", fmt.Sprintf("MSS %d → MTU %d: %s", syn.MSS, syn.MTUGuess, syn.LinkGuess), 10)
 		}
+	}
+	// --- proxy / forwarding headers added by intermediaries ---
+	var proxyHdrs []string
+	for _, h := range rep.HTTP.Headers {
+		switch strings.ToLower(h.Name) {
+		case "via", "forwarded", "x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip",
+			"client-ip", "true-client-ip", "cf-connecting-ip", "x-proxy-id", "x-bluecoat-via", "proxy-connection", "x-originating-ip":
+			proxyHdrs = append(proxyHdrs, h.Name)
+		}
+	}
+	if len(proxyHdrs) > 0 {
+		add("proxy_headers", "warn", "request carries proxy/forwarding headers: "+strings.Join(proxyHdrs, ", "), 15)
 	}
 	if rep.Navigation != nil && rep.Navigation.HTTP != nil && (a.UAFamily == "chromium" || a.UAFamily == "firefox" || a.UAFamily == "safari") && rep.TLS != nil && rep.TLS.Negotiated != nil {
 		has := false
@@ -342,6 +356,17 @@ func analyze(rep *Report) *Analysis {
 	}
 	if rep.component("resistance", &res) && len(res.Detected) > 0 {
 		add("privacy_resistance", "info", strings.Join(res.Detected, ", "), 0)
+	}
+	// --- virtual machine / software rendering ---
+	var gl struct {
+		Renderer string `json:"unmaskedRenderer"`
+	}
+	if rep.component("webgl", &gl) && gl.Renderer != "" {
+		if m := reVirtualGPU.FindString(gl.Renderer); m != "" {
+			add("virtual_or_software_gpu", "warn", "WebGL renderer indicates "+m+": "+gl.Renderer, 15)
+		} else {
+			add("virtual_or_software_gpu", "pass", gl.Renderer, 15)
+		}
 	}
 	var tz struct {
 		Timezone string `json:"timezone"`

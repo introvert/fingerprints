@@ -302,25 +302,80 @@ func (s *Server) handleTLS(raw net.Conn) {
 }
 
 // ServePlain serves cleartext HTTP/1.x on ln, still capturing header order.
+// Cleartext HTTP/2 with prior knowledge (h2c, e.g. curl --http2-prior-knowledge)
+// is detected from the connection preface and fingerprinted like TLS h2.
 func (s *Server) ServePlain(ln net.Listener) error {
 	s.init()
-	return s.h1.Serve(&plainListener{Listener: ln, s: s})
-}
-
-type plainListener struct {
-	net.Listener
-	s *Server
-}
-
-func (l *plainListener) Accept() (net.Conn, error) {
-	c, err := l.Listener.Accept()
-	if err != nil {
-		return nil, err
+	for {
+		c, err := ln.Accept()
+		if err != nil {
+			var ne net.Error
+			if errors.As(err, &ne) && ne.Timeout() {
+				time.Sleep(50 * time.Millisecond)
+				continue
+			}
+			return err
+		}
+		go s.handlePlain(c)
 	}
-	info := l.s.newInfo(c)
+}
+
+const h2Preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
+
+func (s *Server) handlePlain(c net.Conn) {
+	defer func() {
+		if r := recover(); r != nil {
+			s.logf("capture: recovered panic for %s: %v", c.RemoteAddr(), r)
+			c.Close()
+		}
+	}()
+	info := s.newInfo(c)
+	// Peek the first bytes to tell HTTP/1.x from the h2c preface.
+	c.SetReadDeadline(time.Now().Add(15 * time.Second))
+	buf := make([]byte, len(h2Preface))
+	n, _ := io.ReadAtLeast(c, buf, 3)
+	for n < len(buf) && n >= 3 && string(buf[:3]) == "PRI" {
+		m, err := c.Read(buf[n:])
+		n += m
+		if err != nil {
+			break
+		}
+	}
+	c.SetReadDeadline(time.Time{})
+	if n == 0 {
+		c.Close()
+		return
+	}
+	pc := &prefixConn{Conn: c, prefix: buf[:n]}
+	rc := &recordConn{Conn: pc, info: info}
+	if string(buf[:n]) == h2Preface {
+		info.Protocol = "h2c (cleartext, prior knowledge)"
+		info.H2 = h2fp.NewTracker()
+		rc.sink = info.H2
+		ctx := context.WithValue(context.Background(), ctxKey{}, info)
+		// Hide ConnectionState so x/net/http2 does not treat this as failed TLS.
+		s.h2.ServeConn(struct{ net.Conn }{rc}, &http2.ServeConnOpts{Context: ctx, Handler: s.Handler, BaseConfig: s.h1})
+		return
+	}
 	info.Protocol = "http/1.1 (cleartext)"
 	info.H1 = httpfp.NewTracker()
-	return &recordConn{Conn: c, info: info, sink: info.H1}, nil
+	rc.sink = info.H1
+	s.h1Ch <- rc
+}
+
+// prefixConn replays already-read bytes before reading from the socket.
+type prefixConn struct {
+	net.Conn
+	prefix []byte
+}
+
+func (p *prefixConn) Read(b []byte) (int, error) {
+	if len(p.prefix) > 0 {
+		n := copy(b, p.prefix)
+		p.prefix = p.prefix[n:]
+		return n, nil
+	}
+	return p.Conn.Read(b)
 }
 
 type chanListener struct {

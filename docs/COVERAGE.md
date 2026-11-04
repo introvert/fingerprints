@@ -23,6 +23,9 @@ This compares the signals collected here against popular fingerprinting librarie
 | Client hints (high-entropy, via `Accept-CH` / `Critical-CH`) | ➖ | ✅ | – | ✅ `http.client_hints` |
 | TCP SYN: TTL, window, options order, MSS, window scale, DF/ECN (JA4T, p0f-style) | ✅ | ✅ | ✅ JA4T | ✅ `tcp.syn` (Linux, CAP_NET_RAW) |
 | Kernel TCP_INFO (RTT, MSS, negotiated options) | – | – | – | ✅ `tcp.info` |
+| TCP handshake RTT (SYN → ACK, JA4L-like) | – | – | ✅ JA4L | ✅ `timing.tcp_handshake_ms` |
+| Cleartext HTTP/2 (h2c prior knowledge) fingerprint | – | – | – | ✅ on the `-http` port |
+| Proxy / forwarding headers (Via, Forwarded, X-Forwarded-*, CF-Connecting-IP…) | – | ✅ | – | ✅ `analysis` check `proxy_headers` |
 | Timings: TLS RTT, handshake, handshake to first request, preface to HEADERS, QUIC RTT | ➖ | – | ➖ JA4L | ✅ `timing.*` |
 | JA4S / JA4X (server-side TLS and certificate fingerprints) | – | – | ✅ | ❌ these fingerprint servers, not clients |
 | DNS resolver leak | – | ✅ | – | ❌ needs an authoritative DNS server |
@@ -54,6 +57,7 @@ This compares the signals collected here against popular fingerprinting librarie
 | Dedicated / shared / service worker comparison | – | – | ✅ | – | ✅ |
 | Lies / tampering (native-code checks, iframe realm, own properties) | – | – | ✅ | – | ✅ |
 | Headless / automation (webdriver, CDP, Selenium/Playwright/Puppeteer, SwiftShader) | ➖ (Pro) | – | ✅ | – | ✅ |
+| Virtual machine / software GPU (VMware, VirtualBox, Parallels, llvmpipe, Hyper-V…) | ➖ (Pro) | – | ➖ | – | ✅ `analysis` check `virtual_or_software_gpu` |
 | System colors and fonts, engine API surface counts, max call stack | – | – | ✅ | – | ✅ |
 | Brave / Tor / Firefox resistFingerprinting detection | – | – | ✅ | – | ✅ |
 | Private-mode heuristics | – | ✅ | – | – | ✅ (heuristic) |
@@ -73,3 +77,17 @@ The `analysis.checks` list compares layers against each other:
 * Fetch metadata on the page request
 * JavaScript RTT vs transport RTT, which can reveal a proxy or relay
 * MTU vs a VPN, clock skew, automation signals, tampering, and canvas noise
+
+## Not covered, and why
+
+| Gap | Reason | What it would take |
+|---|---|---|
+| HTTP/3 header order, QPACK encoding and SETTINGS order | quic-go decodes QPACK and SETTINGS internally and exposes neither raw bytes nor order | a fork or patch of quic-go's `http3` package |
+| TLS HelloRetryRequest (second ClientHello) | only the first ClientHello is parsed; Go's server rarely sends an HRR to browsers | parse further handshake records in the recorded buffer |
+| Inner SNI of a real ECH connection | the server has no ECH keys; browsers send GREASE ECH by default anyway | `tls.Config.EncryptedClientHelloKeys` plus a published ECH config (HTTPS DNS record) |
+| IPv6 SYNs with extension headers | the SYN parser stops at extension headers | walk the IPv6 next-header chain |
+| IP geolocation, ASN, datacenter/VPN/Tor IP lists | need external databases | MaxMind/IPinfo DB plus a Tor exit list, compared against `network.ip` and `intl.timezone` |
+| DNS resolver leak | needs an authoritative DNS server for a test zone | DNS server plus unique per-visit hostnames |
+| Geolocation, `queryLocalFonts`, `getScreenDetails`, camera/microphone labels | browser permission prompts | opt-in UI |
+| Cache, HSTS and favicon "supercookies" | tracking techniques rather than fingerprints | — |
+| Safari / WebKit, mobile browsers, Windows/macOS hosts | not available in this test environment; code paths exist (Safari rules, Windows TTL 128) but are not exercised by real captures | run captures on those platforms and record examples |

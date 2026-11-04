@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/http2"
 
 	"github.com/introvert/fingerprints/internal/capture"
 	"github.com/introvert/fingerprints/internal/store"
@@ -206,5 +209,44 @@ func TestPlainHTTPPermalinkScheme(t *testing.T) {
 	}
 	if tlsInfo := m["tls"].(map[string]any); tlsInfo["note"] == nil {
 		t.Errorf("plain HTTP should carry the no-TLS note: %v", tlsInfo)
+	}
+}
+
+func TestCleartextH2AndProxyHeaders(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	srv := &capture.Server{Handler: New(Config{}, nil)}
+	go srv.ServePlain(ln)
+	base := "http://" + ln.Addr().String()
+
+	// h2c with prior knowledge
+	h2c := &http.Client{Transport: &http2.Transport{AllowHTTP: true,
+		DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, network, addr)
+		}}}
+	req, _ := http.NewRequest("GET", base+"/api/server", nil)
+	rep := getJSON(t, h2c, req, 200)
+	if p := rep["network"].(map[string]any)["protocol"]; p != "h2c (cleartext, prior knowledge)" {
+		t.Errorf("protocol = %v", p)
+	}
+	if rep["http2"] == nil || rep["http2"].(map[string]any)["akamai_fingerprint"] == "" {
+		t.Errorf("no h2c fingerprint")
+	}
+
+	// plain HTTP/1.1 on the same port, with proxy headers
+	req, _ = http.NewRequest("GET", base+"/api/analysis", nil)
+	req.Header.Set("Via", "1.1 squid")
+	an := getJSON(t, http.DefaultClient, req, 200)
+	found := false
+	for _, c := range an["checks"].([]any) {
+		if c.(map[string]any)["name"] == "proxy_headers" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("proxy_headers check missing: %v", an["checks"])
 	}
 }
