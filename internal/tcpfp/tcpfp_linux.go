@@ -71,7 +71,7 @@ func parseSYN(p []byte, ports map[int]bool) (*SYN, string) {
 		src = net.IP(p[12:16])
 		tcp = p[ihl:]
 	case 6:
-		if len(p) < 60 || p[6] != 6 { // extension headers not handled
+		if len(p) < 40 {
 			return nil, ""
 		}
 		s.IPVersion = 6
@@ -80,7 +80,36 @@ func parseSYN(p []byte, ports map[int]bool) (*SYN, string) {
 		s.IPTotalLen = int(binary.BigEndian.Uint16(p[4:])) + 40
 		s.TTL = int(p[7])
 		src = net.IP(p[8:24])
-		tcp = p[40:]
+		// walk the extension header chain to the TCP header
+		next, off := p[6], 40
+		for hops := 0; next != 6 && hops < 8; hops++ {
+			switch next {
+			case 0, 43, 60: // hop-by-hop, routing, destination options: (len+1)*8 bytes
+				if len(p) < off+8 {
+					return nil, ""
+				}
+				s.IPv6ExtHeaders = append(s.IPv6ExtHeaders, int(next))
+				next, off = p[off], off+(int(p[off+1])+1)*8
+			case 44: // fragment: 8 bytes; only the first fragment carries TCP
+				if len(p) < off+8 || binary.BigEndian.Uint16(p[off+2:])&0xfff8 != 0 {
+					return nil, ""
+				}
+				s.IPv6ExtHeaders = append(s.IPv6ExtHeaders, 44)
+				next, off = p[off], off+8
+			case 51: // authentication header: (len+2)*4 bytes
+				if len(p) < off+8 {
+					return nil, ""
+				}
+				s.IPv6ExtHeaders = append(s.IPv6ExtHeaders, 51)
+				next, off = p[off], off+(int(p[off+1])+2)*4
+			default:
+				return nil, ""
+			}
+		}
+		if next != 6 || len(p) < off+20 {
+			return nil, ""
+		}
+		tcp = p[off:]
 	default:
 		return nil, ""
 	}

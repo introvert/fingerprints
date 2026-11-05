@@ -16,6 +16,7 @@ import (
 	"golang.org/x/net/http2"
 
 	"github.com/introvert/fingerprints/internal/capture"
+	"github.com/introvert/fingerprints/internal/echcfg"
 	"github.com/introvert/fingerprints/internal/store"
 )
 
@@ -248,5 +249,37 @@ func TestCleartextH2AndProxyHeaders(t *testing.T) {
 	}
 	if !found {
 		t.Errorf("proxy_headers check missing: %v", an["checks"])
+	}
+}
+
+func TestECHInnerHello(t *testing.T) {
+	k, _ := echcfg.LoadOrCreate("", "public.example")
+	tk, _ := k.TLSKey()
+	list, _ := k.ConfigList()
+	ts := httptest.NewUnstartedServer(nil)
+	ts.StartTLS()
+	cert := ts.TLS.Certificates[0]
+	ts.Close()
+	ln, _ := net.Listen("tcp", "127.0.0.1:0")
+	defer ln.Close()
+	srv := &capture.Server{Handler: New(Config{}, nil), TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert},
+		NextProtos: []string{"h2", "http/1.1"}, EncryptedClientHelloKeys: []tls.EncryptedClientHelloKey{tk}}}
+	go srv.ServeTLS(ln)
+	c := &http.Client{Transport: &http.Transport{ForceAttemptHTTP2: true, TLSClientConfig: &tls.Config{
+		ServerName: "secret.example", InsecureSkipVerify: true, EncryptedClientHelloConfigList: list}}}
+	req, _ := http.NewRequest("GET", "https://"+ln.Addr().String()+"/api/tls", nil)
+	tl := getJSON(t, c, req, 200)
+	inner, _ := tl["ech_inner_client_hello"].(map[string]any)
+	if inner == nil {
+		t.Fatalf("no inner hello: %v", tl["negotiated"])
+	}
+	if sni := inner["client_hello"].(map[string]any)["server_name"]; sni != "secret.example" {
+		t.Errorf("inner sni = %v", sni)
+	}
+	if outer := tl["client_hello"].(map[string]any)["server_name"]; outer != "public.example" {
+		t.Errorf("outer sni = %v", outer)
+	}
+	if tl["negotiated"].(map[string]any)["ech_accepted"] != true {
+		t.Error("ech not accepted")
 	}
 }

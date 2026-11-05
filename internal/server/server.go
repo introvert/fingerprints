@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/introvert/fingerprints/internal/echcfg"
 	"github.com/introvert/fingerprints/internal/store"
 	"github.com/introvert/fingerprints/web"
 )
@@ -41,10 +42,12 @@ type Config struct {
 
 // Server is the HTTP handler.
 type Server struct {
-	cfg   Config
-	store *store.Store
-	mux   *http.ServeMux
-	nav   *navCache
+	cfg     Config
+	store   *store.Store
+	mux     *http.ServeMux
+	nav     *navCache
+	ech     *echcfg.Key
+	echPort string
 }
 
 // New builds the handler. st may be nil, which disables storage.
@@ -75,6 +78,7 @@ func New(cfg Config, st *store.Store) *Server {
 		s.mux.HandleFunc("GET "+path, func(w http.ResponseWriter, r *http.Request) { s.section(w, r, sec) })
 	}
 	s.mux.HandleFunc("GET /api/ping", s.handlePing)
+	s.mux.HandleFunc("GET /api/ech", s.handleECH)
 	s.mux.HandleFunc("GET /api/export", s.handleExport)
 	s.mux.HandleFunc("GET /api/fingerprint", s.handleFingerprint)
 	s.mux.HandleFunc("POST /api/fingerprint", s.handleFingerprint)

@@ -63,6 +63,7 @@ var h3SettingNames = map[uint64]string{0x1: "QPACK_MAX_TABLE_CAPACITY", 0x6: "MA
 // ServeH3 serves HTTP/3 on pc, fingerprinting each connection's Initial
 // packets. The returned Table can be queried by client address.
 func (s *Server) ServeH3(pc net.PacketConn) error {
+	s.init()
 	table := quicfp.NewTable()
 	tr := &quic.Transport{Conn: &quicfp.TeeConn{PacketConn: pc, Table: table}}
 	tlsConf := http3.ConfigureTLSConfig(s.TLSConfig.Clone())

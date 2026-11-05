@@ -1,7 +1,9 @@
 package server
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,6 +11,7 @@ import (
 	"time"
 
 	"github.com/introvert/fingerprints/internal/capture"
+	"github.com/introvert/fingerprints/internal/echcfg"
 	"github.com/introvert/fingerprints/internal/store"
 )
 
@@ -156,4 +159,28 @@ func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
 		w.Write(rec.Report)
 		w.Write([]byte("\n"))
 	}
+}
+
+// SetECH publishes the server's ECH configuration on /api/ech.
+func (s *Server) SetECH(k *echcfg.Key, port string) {
+	s.ech, s.echPort = k, port
+}
+
+func (s *Server) handleECH(w http.ResponseWriter, r *http.Request) {
+	if s.ech == nil {
+		s.writeErr(w, r, http.StatusNotFound, "ECH is not enabled on this server (start with -ech-public-name)")
+		return
+	}
+	list, _ := s.ech.ConfigList()
+	host := r.Host
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	s.write(w, r, http.StatusOK, map[string]any{
+		"public_name":         s.ech.PublicName,
+		"config_id":           s.ech.ConfigID,
+		"ech_config_list_b64": base64.StdEncoding.EncodeToString(list),
+		"dns_https_record":    s.ech.HTTPSRecord(host, s.echPort),
+		"note":                "browsers use ECH only when they fetch this HTTPS record over encrypted DNS (DoH/DoT)",
+	})
 }

@@ -49,10 +49,15 @@ type ConnInfo struct {
 	H2            *h2fp.Tracker
 	H1            *httpfp.Tracker
 	SYN           *tcpfp.SYN
-	Timings       Timings
+	// TLSRetry is the second ClientHello sent after a HelloRetryRequest.
+	TLSRetry *tlsfp.Fingerprint
+	// TLSInner is the decrypted inner ClientHello of an accepted ECH connection.
+	TLSInner *tlsfp.Fingerprint
+	Timings  Timings
 	// Extra holds transport specific data (e.g. the QUIC fingerprint).
 	Extra    any
 	raw      net.Conn
+	innerCHI *tls.ClientHelloInfo
 	mu       sync.Mutex
 	requests atomic.Int64
 }
@@ -187,6 +192,24 @@ type Server struct {
 
 func (s *Server) init() {
 	s.once.Do(func() {
+		// Observe the ClientHelloInfo used for certificate selection: with
+		// ECH it describes the decrypted inner ClientHello.
+		if s.TLSConfig != nil {
+			cfg := s.TLSConfig.Clone()
+			orig := cfg.GetCertificate
+			cfg.GetCertificate = func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
+				if rc, ok := chi.Conn.(*recordConn); ok {
+					rc.info.mu.Lock()
+					rc.info.innerCHI = chi
+					rc.info.mu.Unlock()
+				}
+				if orig != nil {
+					return orig(chi)
+				}
+				return nil, nil // fall back to Certificates
+			}
+			s.TLSConfig = cfg
+		}
 		s.h1Ch = make(chan net.Conn, 64)
 		s.h1 = &http.Server{
 			Handler:           s.Handler,
@@ -270,6 +293,9 @@ func (s *Server) handleTLS(raw net.Conn) {
 	} else {
 		info.TLSError = perr.Error()
 	}
+	if hellos := tlsfp.ClientHellos(recorded); len(hellos) > 1 {
+		info.TLSRetry = hellos[1].Fingerprint(false) // second ClientHello after HelloRetryRequest
+	}
 	if info.SYN == nil {
 		info.SYN = s.SYNs.Lookup(info.RemoteAddr) // capture goroutine may lag slightly
 	}
@@ -280,6 +306,13 @@ func (s *Server) handleTLS(raw net.Conn) {
 	raw.SetDeadline(time.Time{})
 	st := tc.ConnectionState()
 	info.TLSState = &st
+	if st.ECHAccepted {
+		info.mu.Lock()
+		if info.innerCHI != nil {
+			info.TLSInner = tlsfp.FromClientHelloInfo(info.innerCHI).Fingerprint(false)
+		}
+		info.mu.Unlock()
+	}
 	if st.NegotiatedProtocol == "acme-tls/1" {
 		tc.Close()
 		return

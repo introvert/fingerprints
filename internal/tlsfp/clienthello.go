@@ -710,3 +710,40 @@ func Complete(raw []byte) bool {
 	}
 	return false
 }
+
+// ClientHellos returns every plaintext ClientHello in raw: normally one, two
+// after a TLS 1.3 HelloRetryRequest (the second is sent in reply to the
+// server's HRR, with a new key share). Parsing stops at encrypted records.
+func ClientHellos(raw []byte) []*ClientHello {
+	var out []*ClientHello
+	var hs []byte
+	for p := raw; len(p) >= 5; {
+		typ, n := p[0], int(p[3])<<8|int(p[4])
+		if len(p) < 5+n {
+			break
+		}
+		body := p[5 : 5+n]
+		p = p[5+n:]
+		switch typ {
+		case 0x14: // change_cipher_spec (middlebox compatibility)
+			continue
+		case 0x16:
+			hs = append(hs, body...)
+		default:
+			return out
+		}
+		for len(hs) >= 4 {
+			need := 4 + (int(hs[1])<<16 | int(hs[2])<<8 | int(hs[3]))
+			if len(hs) < need {
+				break
+			}
+			if hs[0] == 0x01 {
+				if ch, err := ParseHandshake(hs[:need]); err == nil {
+					out = append(out, ch)
+				}
+			}
+			hs = hs[need:]
+		}
+	}
+	return out
+}

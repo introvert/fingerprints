@@ -64,9 +64,14 @@ type NetworkInfo struct {
 // TLSInfo combines the ClientHello fingerprint and the negotiated parameters.
 type TLSInfo struct {
 	*tlsfp.Fingerprint
-	Error      string         `json:"error,omitempty"`
-	Negotiated *TLSNegotiated `json:"negotiated,omitempty"`
-	Note       string         `json:"note,omitempty"`
+	// HelloRetry is the second ClientHello sent after a HelloRetryRequest.
+	HelloRetry *tlsfp.Fingerprint `json:"hello_retry_client_hello,omitempty"`
+	// ECHInner is the decrypted inner ClientHello (ECH accepted). Only the
+	// fields crypto/tls exposes are present.
+	ECHInner   *tlsfp.Fingerprint `json:"ech_inner_client_hello,omitempty"`
+	Error      string             `json:"error,omitempty"`
+	Negotiated *TLSNegotiated     `json:"negotiated,omitempty"`
+	Note       string             `json:"note,omitempty"`
 }
 
 // TLSNegotiated holds the parameters chosen by the server.
@@ -221,7 +226,7 @@ func (s *Server) serverReport(r *http.Request) *Report {
 			rep.Network.HandshakeMS = float64(ci.HandshakeTime.Microseconds()) / 1000
 		}
 		if ci.TLS != nil || ci.TLSError != "" {
-			rep.TLS = &TLSInfo{Fingerprint: ci.TLS, Error: ci.TLSError}
+			rep.TLS = &TLSInfo{Fingerprint: ci.TLS, Error: ci.TLSError, HelloRetry: ci.TLSRetry, ECHInner: ci.TLSInner}
 		}
 		if ci.TLSState != nil {
 			if rep.TLS == nil {

@@ -23,6 +23,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/introvert/fingerprints/internal/capture"
+	"github.com/introvert/fingerprints/internal/echcfg"
 	"github.com/introvert/fingerprints/internal/server"
 	"github.com/introvert/fingerprints/internal/store"
 	"github.com/introvert/fingerprints/internal/tcpfp"
@@ -43,6 +44,8 @@ func main() {
 		adminToken = flag.String("admin-token", os.Getenv("FP_ADMIN_TOKEN"), "token required for listing/related/delete (env FP_ADMIN_TOKEN)")
 		readOnly   = flag.Bool("read-only", false, "disable storing new fingerprints")
 		synCapture = flag.Bool("syn-capture", true, "capture client SYN packets for TCP/IP fingerprints (JA4T, TTL, MSS; Linux, needs CAP_NET_RAW; failure is non-fatal)")
+		echName    = flag.String("ech-public-name", "", "enable Encrypted Client Hello with this public (outer) name; clients learn the config from a DNS HTTPS record (see /api/ech)")
+		echKey     = flag.String("ech-key", "ech-key.json", "file holding the ECH private key (created if missing)")
 		h3         = flag.Bool("http3", true, "serve HTTP/3 (QUIC) on the UDP port of -https and fingerprint QUIC Initial packets")
 	)
 	flag.Parse()
@@ -95,6 +98,20 @@ func main() {
 		log.Printf("using a generated self-signed certificate for %s", *hosts)
 	}
 
+	if *echName != "" {
+		k, err := echcfg.LoadOrCreate(*echKey, *echName)
+		if err != nil {
+			log.Fatalf("ech: %v", err)
+		}
+		tk, err := k.TLSKey()
+		if err != nil {
+			log.Fatalf("ech: %v", err)
+		}
+		tlsCfg.EncryptedClientHelloKeys = []tls.EncryptedClientHelloKey{tk}
+		_, port, _ := net.SplitHostPort(*httpsAddr)
+		h.SetECH(k, port)
+		log.Printf("ECH enabled (public name %s). Publish: %s", *echName, k.HTTPSRecord("<your-host>", port))
+	}
 	srv := &capture.Server{Handler: h, TLSConfig: tlsCfg}
 	if *synCapture {
 		var ports []int

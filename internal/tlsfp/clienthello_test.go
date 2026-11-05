@@ -165,3 +165,41 @@ func TestComplete(t *testing.T) {
 		t.Fatal("full hello not complete")
 	}
 }
+
+// TestHelloRetryRequest forces an HRR (server only accepts P-256 while the
+// Go client's first key share is X25519) and checks both ClientHellos.
+func TestHelloRetryRequest(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	cert := testCert(t)
+	go func() {
+		cli, err := net.Dial("tcp", ln.Addr().String())
+		if err != nil {
+			return
+		}
+		c := tls.Client(cli, &tls.Config{ServerName: "fp.test", InsecureSkipVerify: true, CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256}})
+		c.SetDeadline(time.Now().Add(3 * time.Second))
+		c.Handshake()
+		c.Close()
+	}()
+	srv, err := ln.Accept()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rc := &recConn{Conn: srv}
+	s := tls.Server(rc, &tls.Config{Certificates: []tls.Certificate{cert}, CurvePreferences: []tls.CurveID{tls.CurveP256}})
+	s.SetDeadline(time.Now().Add(3 * time.Second))
+	if err := s.Handshake(); err != nil {
+		t.Fatal(err)
+	}
+	hellos := ClientHellos(rc.buf)
+	if len(hellos) != 2 {
+		t.Fatalf("got %d ClientHellos, want 2", len(hellos))
+	}
+	if hellos[0].KeyShareGroups[0] != uint16(tls.X25519) || hellos[1].KeyShareGroups[0] != uint16(tls.CurveP256) {
+		t.Errorf("key shares: first %v, second %v", hellos[0].KeyShareGroups, hellos[1].KeyShareGroups)
+	}
+}

@@ -14,32 +14,33 @@ import (
 
 // SYN describes the first packet of a client connection as seen on the wire.
 type SYN struct {
-	CapturedAt   time.Time `json:"captured_at"`
-	IPVersion    int       `json:"ip_version"`
-	TTL          int       `json:"ttl"`
-	InitialTTL   int       `json:"initial_ttl_guess"`
-	Hops         int       `json:"hops_guess"`
-	IPTotalLen   int       `json:"ip_total_length"`
-	IPID         int       `json:"ip_id,omitempty"`
-	DontFragment bool      `json:"dont_fragment"`
-	TOS          int       `json:"tos"`
-	ECN          string    `json:"ecn"`
-	FlowLabel    int       `json:"ipv6_flow_label,omitempty"`
-	Window       int       `json:"window_size"`
-	Options      []string  `json:"options"`
-	OptionKinds  []int     `json:"option_kinds"`
-	MSS          int       `json:"mss,omitempty"`
-	WindowScale  int       `json:"window_scale"`
-	SACKPermit   bool      `json:"sack_permitted"`
-	Timestamp    bool      `json:"timestamps"`
-	TSVal        uint32    `json:"tsval,omitempty"`
-	TCPFlags     string    `json:"tcp_flags"`
-	ECNSetup     bool      `json:"ecn_setup"`
-	JA4T         string    `json:"ja4t"`
-	P0fLike      string    `json:"p0f_signature"`
-	OSGuess      string    `json:"os_guess"`
-	MTUGuess     int       `json:"mtu_guess,omitempty"`
-	LinkGuess    string    `json:"link_guess,omitempty"`
+	CapturedAt     time.Time `json:"captured_at"`
+	IPVersion      int       `json:"ip_version"`
+	TTL            int       `json:"ttl"`
+	InitialTTL     int       `json:"initial_ttl_guess"`
+	Hops           int       `json:"hops_guess"`
+	IPTotalLen     int       `json:"ip_total_length"`
+	IPID           int       `json:"ip_id,omitempty"`
+	DontFragment   bool      `json:"dont_fragment"`
+	TOS            int       `json:"tos"`
+	ECN            string    `json:"ecn"`
+	FlowLabel      int       `json:"ipv6_flow_label,omitempty"`
+	IPv6ExtHeaders []int     `json:"ipv6_extension_headers,omitempty"`
+	Window         int       `json:"window_size"`
+	Options        []string  `json:"options"`
+	OptionKinds    []int     `json:"option_kinds"`
+	MSS            int       `json:"mss,omitempty"`
+	WindowScale    int       `json:"window_scale"`
+	SACKPermit     bool      `json:"sack_permitted"`
+	Timestamp      bool      `json:"timestamps"`
+	TSVal          uint32    `json:"tsval,omitempty"`
+	TCPFlags       string    `json:"tcp_flags"`
+	ECNSetup       bool      `json:"ecn_setup"`
+	JA4T           string    `json:"ja4t"`
+	P0fLike        string    `json:"p0f_signature"`
+	OSGuess        string    `json:"os_guess"`
+	MTUGuess       int       `json:"mtu_guess,omitempty"`
+	LinkGuess      string    `json:"link_guess,omitempty"`
 }
 
 var optNames = map[int]string{0: "EOL", 1: "NOP", 2: "MSS", 3: "WS", 4: "SACK_PERM", 5: "SACK", 8: "TS", 28: "UTO", 30: "MPTCP", 34: "TFO", 254: "EXP"}
