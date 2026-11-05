@@ -16,10 +16,12 @@ import (
 
 // H3Info is attached to ConnInfo.Extra for HTTP/3 connections.
 type H3Info struct {
-	QUIC *quicfp.Fingerprint
-	conn *quic.Conn
-	mu   sync.Mutex
-	set  *H3Settings
+	QUIC  *quicfp.Fingerprint
+	Table *quicfp.Table
+	Addr  string
+	conn  *quic.Conn
+	mu    sync.Mutex
+	set   *H3Settings
 }
 
 // H3Settings are the client's HTTP/3 SETTINGS (order is not exposed by quic-go).
@@ -65,8 +67,12 @@ var h3SettingNames = map[uint64]string{0x1: "QPACK_MAX_TABLE_CAPACITY", 0x6: "MA
 func (s *Server) ServeH3(pc net.PacketConn) error {
 	s.init()
 	table := quicfp.NewTable()
-	tr := &quic.Transport{Conn: &quicfp.TeeConn{PacketConn: pc, Table: table}}
-	tlsConf := http3.ConfigureTLSConfig(s.TLSConfig.Clone())
+	tr := &quic.Transport{Conn: &quicfp.TeeConn{PacketConn: pc, Table: table}, ConnectionIDLength: table.CIDLen}
+	base := s.TLSConfig.Clone()
+	// Our own session secrets let the tap decrypt the client's 1-RTT packets
+	// (HTTP/3 SETTINGS order, QPACK field order and encodings).
+	base.KeyLogWriter = table.KeyLogWriter()
+	tlsConf := http3.ConfigureTLSConfig(base)
 	ln, err := tr.Listen(tlsConf, &quic.Config{MaxIdleTimeout: 60 * time.Second})
 	if err != nil {
 		return err
@@ -112,7 +118,7 @@ func (s *Server) ServeH3(pc net.PacketConn) error {
 		ConnContext: func(ctx context.Context, c *quic.Conn) context.Context {
 			addr := c.RemoteAddr().String()
 			ci := &ConnInfo{ID: NewConnID(), RemoteAddr: addr, LocalAddr: c.LocalAddr().String(), AcceptedAt: time.Now(), Protocol: "h3"}
-			h := &H3Info{QUIC: table.Lookup(addr), conn: c}
+			h := &H3Info{QUIC: table.Lookup(addr), conn: c, Table: table, Addr: addr}
 			if h.QUIC != nil {
 				ci.TLS = h.QUIC.TLS
 				ci.AcceptedAt = h.QUIC.FirstSeen

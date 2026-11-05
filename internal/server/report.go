@@ -87,24 +87,26 @@ type TLSNegotiated struct {
 
 // HTTPInfo is the request level HTTP fingerprint.
 type HTTPInfo struct {
-	Method       string            `json:"method"`
-	Path         string            `json:"path"`
-	Version      string            `json:"version"`
-	Host         string            `json:"host"`
-	UserAgent    string            `json:"user_agent"`
-	HeaderOrder  []string          `json:"header_order"`
-	Headers      []httpfp.Header   `json:"headers"`
-	HeaderSource string            `json:"header_source"`
-	JA4H         string            `json:"ja4h"`
-	JA4HRaw      string            `json:"ja4h_r"`
-	ClientHints  map[string]string `json:"client_hints,omitempty"`
-	H2Priority   *h2fp.Priority    `json:"h2_headers_priority,omitempty"`
-	H2Flags      []string          `json:"h2_headers_flags,omitempty"`
-	HPACKCodes   string            `json:"hpack_codes,omitempty"`
-	HeaderCount  int               `json:"header_count"`
-	HeaderBytes  int               `json:"header_bytes"`
-	PseudoOrder  string            `json:"pseudo_header_order,omitempty"`
-	Casing       string            `json:"header_name_casing"`
+	Method                string            `json:"method"`
+	Path                  string            `json:"path"`
+	Version               string            `json:"version"`
+	Host                  string            `json:"host"`
+	UserAgent             string            `json:"user_agent"`
+	HeaderOrder           []string          `json:"header_order"`
+	Headers               []httpfp.Header   `json:"headers"`
+	HeaderSource          string            `json:"header_source"`
+	JA4H                  string            `json:"ja4h"`
+	JA4HRaw               string            `json:"ja4h_r"`
+	ClientHints           map[string]string `json:"client_hints,omitempty"`
+	H2Priority            *h2fp.Priority    `json:"h2_headers_priority,omitempty"`
+	H2Flags               []string          `json:"h2_headers_flags,omitempty"`
+	HPACKCodes            string            `json:"hpack_codes,omitempty"`
+	QPACKCodes            string            `json:"qpack_codes,omitempty"`
+	H3FramesBeforeHeaders []string          `json:"h3_frames_before_headers,omitempty"`
+	HeaderCount           int               `json:"header_count"`
+	HeaderBytes           int               `json:"header_bytes"`
+	PseudoOrder           string            `json:"pseudo_header_order,omitempty"`
+	Casing                string            `json:"header_name_casing"`
 }
 
 // TCPReport holds TCP/IP level data.
@@ -116,10 +118,16 @@ type TCPReport struct {
 
 // HTTP3Info holds the QUIC / HTTP/3 fingerprint.
 type HTTP3Info struct {
-	QUIC     *quicfp.Fingerprint `json:"quic,omitempty"`
-	Settings *capture.H3Settings `json:"settings,omitempty"`
-	Stats    *capture.QUICStats  `json:"rtt,omitempty"`
-	Note     string              `json:"note,omitempty"`
+	QUIC *quicfp.Fingerprint `json:"quic,omitempty"`
+	// Control is decoded from the client's decrypted control stream:
+	// SETTINGS in wire order, unidirectional stream types, frames.
+	Control *quicfp.H3Control `json:"control,omitempty"`
+	// Fingerprint: SETTINGS (wire order) | pseudo-header order | uni stream types
+	Fingerprint     string              `json:"h3_fingerprint,omitempty"`
+	FingerprintHash string              `json:"h3_fingerprint_hash,omitempty"`
+	Settings        *capture.H3Settings `json:"settings,omitempty"`
+	Stats           *capture.QUICStats  `json:"rtt,omitempty"`
+	Note            string              `json:"note,omitempty"`
 }
 
 // TimingReport contains connection and request timings in milliseconds.
@@ -258,8 +266,27 @@ func (s *Server) serverReport(r *http.Request) *Report {
 			}
 		}
 		if h3, ok := ci.Extra.(*capture.H3Info); ok {
-			rep.HTTP3 = &HTTP3Info{QUIC: h3.QUIC, Settings: h3.Settings(), Stats: h3.Stats(),
-				Note: "HTTP/3 header order is not available (QPACK is decoded inside quic-go)"}
+			rep.HTTP3 = &HTTP3Info{QUIC: h3.QUIC, Settings: h3.Settings(), Stats: h3.Stats()}
+			if h3.Table != nil {
+				rep.HTTP3.Control = h3.Table.H3Control(h3.Addr)
+				if req := h3.Table.H3Request(h3.Addr, r.Method, requestTarget(r)); req != nil {
+					var codes []string
+					for _, h := range req.Headers {
+						hh := httpfp.Header{Name: h.Name, Value: h.Value}
+						if h.QPACK != nil {
+							hh.Encoding = h.QPACK
+							codes = append(codes, h.QPACK.Code)
+						}
+						headers = append(headers, hh)
+					}
+					rep.HTTP.HeaderSource = "qpack (wire order, decrypted from 1-RTT packets)"
+					rep.HTTP.QPACKCodes = req.QPACKCodes
+					rep.HTTP.H3FramesBeforeHeaders = req.FramesBeforeHdrs
+				}
+			}
+			if rep.HTTP3.Control == nil {
+				rep.HTTP3.Note = "client 1-RTT packets could not be decrypted; SETTINGS order and header order unavailable"
+			}
 		}
 		s.fillTransport(rep, ci)
 		if ci.H1 != nil {
@@ -347,6 +374,20 @@ func (rep *Report) finalize() {
 		h["ja4t"] = rep.TCP.SYN.JA4T
 		h["p0f"] = sha(rep.TCP.SYN.P0fLike)[:16]
 	}
+	if rep.HTTP3 != nil && rep.HTTP3.Control != nil {
+		var pseudo []string
+		for _, n := range rep.HTTP.HeaderOrder {
+			if strings.HasPrefix(n, ":") && len(n) > 1 {
+				pseudo = append(pseudo, n[1:2])
+			}
+		}
+		rep.HTTP3.Fingerprint = rep.HTTP3.Control.SettingsString + "|" + strings.Join(pseudo, ",") + "|" + strings.Join(rep.HTTP3.Control.UniStreamTypes, ",")
+		rep.HTTP3.FingerprintHash = sha(rep.HTTP3.Fingerprint)[:32]
+		h["http3"] = rep.HTTP3.FingerprintHash
+		if rep.HTTP.QPACKCodes != "" {
+			h["qpack"] = sha(rep.HTTP.QPACKCodes)[:16]
+		}
+	}
 	if rep.HTTP3 != nil && rep.HTTP3.QUIC != nil {
 		if rep.HTTP3.QUIC.TLS != nil {
 			h["ja4_quic"] = rep.HTTP3.QUIC.TLS.JA4
@@ -418,6 +459,9 @@ func (rep *Report) finalize() {
 	}
 	if rep.HTTP3 != nil && rep.HTTP3.QUIC != nil && rep.HTTP3.QUIC.TLS != nil {
 		sm["ja4_quic"] = rep.HTTP3.QUIC.TLS.JA4
+	}
+	if rep.HTTP3 != nil && rep.HTTP3.Fingerprint != "" {
+		sm["http3_fingerprint"] = rep.HTTP3.Fingerprint
 	}
 	if rep.Navigation != nil && rep.Navigation.HTTP != nil && rep.Navigation.HTTP.JA4H != "" {
 		sm["ja4h_navigation"] = rep.Navigation.HTTP.JA4H
@@ -522,4 +566,13 @@ func (s *Server) fillTransport(rep *Report, ci *capture.ConnInfo) {
 	if tcp.SYN != nil || tcp.Info != nil {
 		rep.TCP = tcp
 	}
+}
+
+// requestTarget is the request-target as sent; quic-go's HTTP/3 server does
+// not populate Request.RequestURI.
+func requestTarget(r *http.Request) string {
+	if r.RequestURI != "" {
+		return r.RequestURI
+	}
+	return r.URL.RequestURI()
 }

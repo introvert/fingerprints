@@ -67,6 +67,26 @@ func TestHTTP3Fingerprint(t *testing.T) {
 	if len(q.TLS.ClientHello.QUICParams) == 0 || q.QUICFingerprint == "" {
 		t.Errorf("no transport parameters: %s", b)
 	}
+	var full map[string]any
+	json.Unmarshal(b, &full)
+	httpInfo := full["http"].(map[string]any)
+	if src := httpInfo["header_source"]; src != "qpack (wire order, decrypted from 1-RTT packets)" {
+		t.Errorf("header_source = %v", src)
+	}
+	// quic-go's client sends pseudo headers alphabetically (:authority first)
+	if order := httpInfo["header_order"].([]any); len(order) < 4 || order[0] != ":authority" || order[1] != ":method" {
+		t.Errorf("header order = %v", order)
+	}
+	if httpInfo["qpack_codes"] == "" || httpInfo["ja4h"] == "" {
+		t.Errorf("qpack_codes=%v ja4h=%v", httpInfo["qpack_codes"], httpInfo["ja4h"])
+	}
+	h3 := full["http3"].(map[string]any)
+	ctl, _ := h3["control"].(map[string]any)
+	if ctl == nil || len(ctl["settings"].([]any)) == 0 || h3["h3_fingerprint"] == "" {
+		t.Errorf("no decrypted control stream: %v", h3)
+	} else {
+		t.Logf("h3_fingerprint=%v cipher=%v uni=%v", h3["h3_fingerprint"], ctl["decrypted_with"], ctl["uni_stream_types"])
+	}
 	if rep.TLS.JA4 != q.TLS.JA4 {
 		t.Errorf("tls.ja4 %q != quic ja4 %q", rep.TLS.JA4, q.TLS.JA4)
 	}

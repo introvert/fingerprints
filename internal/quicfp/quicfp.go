@@ -12,7 +12,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -71,24 +74,36 @@ type Fingerprint struct {
 }
 
 type state struct {
-	fp          *Fingerprint
-	dcid        string
-	crypto      map[uint64][]byte
-	lastOff     uint64
-	ordered     bool
-	done        bool
-	lastSeen    time.Time
-	cryptoBytes int
+	fp           *Fingerprint
+	dcid         string
+	crypto       map[uint64][]byte
+	lastOff      uint64
+	ordered      bool
+	done         bool
+	lastSeen     time.Time
+	cryptoBytes  int
+	clientRandom string
+	app          *appState
 }
 
 // Table tracks Initial flights by client address.
 type Table struct {
 	mu sync.Mutex
 	m  map[string]*state
+	// CIDLen is the length of the server's connection IDs (needed to parse
+	// short-header packets); it must match quic.Transport.ConnectionIDLength.
+	CIDLen int
+	keys   *keyLog
 }
 
 // NewTable returns an empty table.
-func NewTable() *Table { return &Table{m: map[string]*state{}} }
+func NewTable() *Table {
+	return &Table{m: map[string]*state{}, CIDLen: 8, keys: &keyLog{keys: map[string][]byte{}}}
+}
+
+// KeyLogWriter must be set as tls.Config.KeyLogWriter of the QUIC listener so
+// the client's 1-RTT packets can be decrypted for HTTP/3 fingerprinting.
+func (t *Table) KeyLogWriter() io.Writer { return t.keys }
 
 // Lookup returns the fingerprint for a client address ("ip:port").
 func (t *Table) Lookup(addr string) *Fingerprint {
@@ -102,7 +117,7 @@ func (t *Table) Lookup(addr string) *Fingerprint {
 
 // Observe processes one datagram received from addr.
 func (t *Table) Observe(addr string, d []byte) {
-	if len(d) < 7 || d[0]&0x80 == 0 { // short header: not an Initial
+	if len(d) < 7 {
 		return
 	}
 	t.mu.Lock()
@@ -112,6 +127,7 @@ func (t *Table) Observe(addr string, d []byte) {
 	for len(d) > 0 && d[0]&0x80 != 0 {
 		n, err := t.packet(addr, d, &s, len(d))
 		if err != nil || n <= 0 {
+			d = nil
 			break
 		}
 		pkts++
@@ -119,6 +135,9 @@ func (t *Table) Observe(addr string, d []byte) {
 	}
 	if s != nil && pkts > 1 {
 		s.fp.Coalesced = true
+	}
+	if len(d) > 0 && d[0]&0xc0 == 0x40 { // short header (1-RTT), possibly coalesced
+		t.short(addr, d)
 	}
 	if len(t.m) > maxEntries {
 		cut := time.Now().Add(-2 * time.Minute)
@@ -344,6 +363,7 @@ func (s *state) tryClientHello() {
 		return
 	}
 	s.fp.TLS = ch.Fingerprint(true)
+	s.clientRandom = hex.EncodeToString(ch.Random)
 	// Browsers shuffle transport parameter order, so the fingerprint uses the
 	// sorted ids; the original order is kept in TransportParamOrder.
 	var ids []uint64
@@ -466,3 +486,81 @@ func (c *TeeConn) SetWriteBuffer(n int) error {
 	}
 	return nil
 }
+
+func (t *Table) short(addr string, d []byte) {
+	s := t.m[addr]
+	if s == nil || !s.done || s.fp.TLS == nil || s.clientRandom == "" {
+		return
+	}
+	if s.app == nil {
+		sec := t.keys.take(s.clientRandom)
+		if sec == nil {
+			return
+		}
+		s.app = newAppState(sec)
+	}
+	a := s.app
+	if a.total >= maxAppBytes || a.packets >= 4096 || a.failures > 64 {
+		return
+	}
+	pt, ok := a.decrypt(d, t.CIDLen)
+	if !ok {
+		a.failures++
+		return
+	}
+	a.packets++
+	fl := a.frames(pt)
+	if len(a.frameLog) < 12 {
+		a.frameLog = append(a.frameLog, fl)
+	}
+}
+
+// H3Control returns the client's decrypted HTTP/3 control stream data.
+func (t *Table) H3Control(addr string) *H3Control {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	s := t.m[addr]
+	if s == nil || s.app == nil {
+		return nil
+	}
+	return s.app.control()
+}
+
+// H3Request returns the oldest unclaimed decrypted request matching method
+// and path (headers in wire order with their QPACK encodings).
+func (t *Table) H3Request(addr, method, path string) *H3Request {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	s := t.m[addr]
+	if s == nil || s.app == nil {
+		return nil
+	}
+	ids := make([]uint64, 0, len(s.app.streams))
+	for id := range s.app.streams {
+		if id%4 == 0 && !s.app.used[id] {
+			ids = append(ids, id)
+		}
+	}
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	for _, id := range ids {
+		if r := s.app.request(id); r != nil && r.method == method && r.path == path {
+			s.app.used[id] = true
+			return r
+		}
+	}
+	if DebugH3 {
+		var seen []string
+		for _, id := range ids {
+			r := s.app.request(id)
+			if r == nil {
+				seen = append(seen, fmt.Sprintf("%d:nil(size=%d)", id, s.app.streams[id].size))
+			} else {
+				seen = append(seen, fmt.Sprintf("%d:%s %s", id, r.method, r.path))
+			}
+		}
+		log.Printf("DEBUG h3 no match %s %s; streams=%v total=%d pkts=%d fails=%d", method, path, seen, s.app.total, s.app.packets, s.app.failures)
+	}
+	return nil
+}
+
+var DebugH3 = os.Getenv("FP_DEBUG_H3") != ""
